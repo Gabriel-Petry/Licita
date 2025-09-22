@@ -1,0 +1,103 @@
+/* ==========================================================================
+   Definição dos Temas
+   ========================================================================== */
+
+body[data-theme="dark"] {
+  --cor-fundo: #0b1020;
+  --cor-painel: #141a2e;
+  --cor-borda: #2a3354;
+  --cor-texto-primario: #e2e8f0;
+  --cor-texto-secundario: #94a3b8;
+  --cor-destaque: #7c3aed;
+  --cor-sucesso: #22c55e;
+  --cor-aviso: #f59e0b;
+  --cor-perigo: #ef4444;
+  --input-bg: #0e1430;
+}
+
+body[data-theme="light"] {
+  --cor-fundo: #f1f5f9;
+  --cor-painel: #ffffff;
+  --cor-borda: #e2e8f0;
+  --cor-texto-primario: #1e293b;
+  --cor-texto-secundario: #64748b;
+  --cor-destaque: #7c3aed;
+  --cor-sucesso: #16a34a;
+  --cor-aviso: #f59e0b;
+  --cor-perigo: #dc2626;
+  --input-bg: #f8fafc;
+}
+
+body[data-theme="blue"] {
+  --cor-fundo: #070f2b;
+  --cor-painel: #1b1a55;
+  --cor-borda: #535c91;
+  --cor-texto-primario: #f0f3ff;
+  --cor-texto-secundario: #9290c3;
+  --cor-destaque: #93b1a6;
+  --cor-sucesso: #54b435;
+  --cor-aviso: #ffc107;
+  --cor-perigo: #d63447;
+  --input-bg: #0f183e;
+}
+
+body[data-theme="oceano"] {
+  --cor-fundo: #0a192f;
+  --cor-painel: #172a46;
+  --cor-borda: #304a6e;
+  --cor-texto-primario: #ccd6f6;
+  --cor-texto-secundario: #8892b0;
+  --cor-destaque: #64ffda;
+  --cor-sucesso: #7ae5a9;
+  --cor-aviso: #f5d398;
+  --cor-perigo: #ff8a8a;
+  --input-bg: #0e1f3a;
+}
+
+body[data-theme="matrix"] {
+  --cor-fundo: #000000;
+  --cor-painel: #0d0d0d;
+  --cor-borda: #1a1a1a;
+  --cor-texto-primario: #39ff14;
+  --cor-texto-secundario: #28b40f;
+  --cor-destaque: #bbff00;
+  --cor-sucesso: #39ff14;
+  --cor-aviso: #f59e0b;
+  --cor-perigo: #ef4444;
+  --input-bg: #111111;
+}
+
+body[data-theme="solarized"] {
+  --cor-fundo: #002b36;
+  --cor-painel: #073642;
+  --cor-borda: #586e75;
+  --cor-texto-primario: #eee8d5;
+  --cor-texto-secundario: #93a1a1;
+  --cor-destaque: #2aa198;
+  --cor-sucesso: #859900;
+  --cor-aviso: #b58900;
+  --cor-perigo: #dc322f;
+  --input-bg: #002b36;
+}
+
+body[data-theme="contraste"] {
+  --cor-fundo: #ffffff;
+  --cor-painel: #ffffff;
+  --cor-borda: #cccccc;
+  --cor-texto-primario: #000000;
+  --cor-texto-secundario: #444444;
+  --cor-destaque: #005fcc;
+  --cor-sucesso: #006421;
+  --cor-aviso: #c65102;
+  --cor-perigo: #b90000;
+  --input-bg: #f2f2f2;
+}
+
+body[data-theme="light"] input,
+body[data-theme="light"] select,
+body[data-theme="light"] textarea,
+body[data-theme="blue"] input,
+body[data-theme="blue"] select,
+body[data-theme="blue"] textarea {
+    background-color: var(--input-bg);
+}
