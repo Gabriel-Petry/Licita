@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Componente Searchable Select
+   ========================================================================== */
+
+.searchable-select-container {
+  position: relative;
+}
+
+.searchable-select-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--raio-borda);
+  background: #0e1430;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto-primario);
+  font-size: 16px;
+  transition: var(--transicao);
+  cursor: pointer;
+}
+
+.searchable-select-input:focus {
+  border-color: var(--cor-destaque);
+  outline: none;
+}
+
+.searchable-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--cor-painel);
+  border: 1px solid var(--cor-borda);
+  border-top: none;
+  border-radius: 0 0 var(--raio-borda) var(--raio-borda);
+  z-index: 101;
+  display: none;
+}
+
+.searchable-select-option {
+  padding: 12px;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: var(--transicao);
+}
+
+.searchable-select-option:hover,
+.searchable-select-option.highlighted {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--cor-texto-primario);
+}
+
+.searchable-select-option.hidden {
+  display: none;
+}

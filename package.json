@@ -1,0 +1,17 @@
+{
+  "name": "testes",
+  "version": "1.0.0",
+  "description": "Quatro páginas principais: 1. **/login.php** – autenticação. 2. **/dashboard.php** – KPIs, próximos prazos e gráficos. 3. **/licitacoes.php** – CRUD das licitações com filtros. 4. **/cadastros.php** – cadastros auxiliares (Órgãos, Modalidades, Fornecedores, Status).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.12"
+  }
+}

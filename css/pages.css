@@ -1,0 +1,398 @@
+/* ==========================================================================
+   Estilos por Página
+   ========================================================================== */
+
+/* --- Estilos da Página de Login --- */
+.page-centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.login-logo {
+    max-width: 140px;
+    margin-bottom: 2rem;
+}
+.login-card {
+    width: 100%;
+    padding: 2rem;
+    text-align: left;
+}
+.login-card form {
+    text-align: center;
+}
+.login-card form > label {
+    margin-top: 1rem;
+}
+.login-card form > input {
+    margin-bottom: 0.5rem;
+}
+.login-card form > .btn.login {
+    margin-top: 1.5rem;
+    width: 100%;
+}
+.login-card p.muted {
+    text-align: center;
+    margin-top: 1rem;
+}
+.login-footer {
+    margin-top: 1.5rem;
+}
+.link-discreto {
+    color: var(--cor-texto-secundario);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.link-discreto.senha {
+    font-weight: 700;
+}
+body.page-centered main.container {
+    flex-grow: 0;
+    width: auto;
+    padding: 0;
+    overflow-y: visible;
+}
+
+
+/* --- Estilos das Páginas de Listagem (Licitações, Cadastros, etc.) --- */
+body.page-licitacoes main.container,
+body.page-cadastros main.container {
+    max-width: 2400px;
+    padding: 1.5rem 2rem;
+    overflow: hidden;
+}
+body.page-cadastros main.container {
+    max-width: 1400px;
+}
+body.page-licitacoes .card,
+body.page-cadastros .card {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+body.page-licitacoes .table-scroll-container,
+body.page-cadastros .table-scroll-container {
+    flex-grow: 1;
+    overflow: auto;
+}
+body.page-cadastros .toolbar {
+    justify-content: flex-start;
+}
+body.page-cadastros .table-scroll-container td.actions-cell {
+    text-align: right;
+    width: 1%;
+    white-space: nowrap;
+}
+body.page-licitacoes .table-scroll-container {
+    font-size: 14px;
+}
+body.page-licitacoes .table-scroll-container th,
+body.page-licitacoes .table-scroll-container td {
+    white-space: nowrap;
+    padding: 12px 10px;
+    vertical-align: top;
+}
+body.page-licitacoes th:nth-child(2), body.page-licitacoes td:nth-child(2),
+body.page-licitacoes th:nth-child(6), body.page-licitacoes td:nth-child(6) {
+    min-width: 220px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+
+/* --- Estilos da Página de Dashboard --- */
+body.page-dashboard {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+}
+body.page-dashboard main.container {
+    max-width: 1800px;
+    overflow-y: auto;
+}
+body.page-dashboard .card {
+    padding: 1.5rem;
+}
+body.page-dashboard h3 {
+    margin-bottom: 1rem;
+    font-size: clamp(1rem, 0.8rem + 0.5vw, 1.1rem);
+}
+.kpi-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.kpi-container .card {
+    padding: 1rem;
+}
+.kpi-container .card .muted {
+    font-size: clamp(0.8rem, 0.7rem + 0.25vw, 0.9rem);
+}
+.kpi {
+    font-weight: 700;
+    margin-top: 0.25rem;
+    font-size: clamp(0.8rem, 0.5rem + 1vw, 1.1rem);
+}
+.dashboard-grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: stretch;
+}
+.dashboard-grid-container .card {
+    height: 380px;
+    display: flex;
+    flex-direction: column;
+}
+.chart-container {
+    position: relative;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+
+/* --- Estilos do Calendário do Dashboard --- */
+.card-calendario {
+    display: flex;
+    flex-direction: column;
+}
+.calendario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+.calendario-header h3 {
+    margin: 0;
+    text-align: center;
+    flex-grow: 1;
+}
+.calendario-header .nav-arrow {
+    color: var(--cor-texto-secundario);
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0 0.5rem;
+    transition: var(--transicao);
+}
+.calendario-header .nav-arrow:hover {
+    color: var(--cor-texto-primario);
+}
+.calendario {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.calendario th {
+    color: var(--cor-texto-secundario);
+    font-weight: 600;
+    padding-bottom: 0.75rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+.calendario td {
+    text-align: center;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--cor-borda);
+    font-size: 0.875rem;
+    position: relative;
+}
+.calendario td .day-number {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+.calendario td.hoje .day-number {
+    background-color: var(--cor-destaque);
+    color: white;
+    font-weight: bold;
+}
+.calendario td.evento {
+    cursor: pointer;
+}
+.calendario td.evento .day-number {
+    font-weight: bold;
+    color: var(--cor-sucesso);
+    border: 1px solid var(--cor-sucesso);
+}
+.calendario td.evento:hover .day-number {
+    background-color: rgba(34, 197, 94, 0.2);
+}
+.calendar-tooltip {
+    position: fixed;
+    display: none;
+    background-color: var(--cor-painel);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: 0.75rem;
+    z-index: 1010;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 300px;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+.calendar-tooltip ul {
+    margin: 0;
+    padding: 0 0 0 1rem;
+    list-style: disc;
+}
+.calendar-tooltip li {
+    margin-bottom: 0.5rem;
+}
+.calendar-tooltip li:last-child {
+    margin-bottom: 0;
+}
+
+
+/* --- Estilos da Página de Resumo --- */
+.table-prazos td {
+    white-space: normal;
+    word-break: break-word;
+}
+.table-prazos th:nth-child(4), .table-prazos td:nth-child(4),
+.table-prazos th:nth-child(5), .table-prazos td:nth-child(5) {
+    min-width: 250px;
+}
+
+
+/* ============================================
+   Estilos Responsivos
+   ============================================*/
+
+@media (max-width: 1600px) {
+    body.page-dashboard main.container { max-width: 1200px; }
+}
+
+@media (max-width: 1400px) {
+    .dashboard-grid-container { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 992px) {
+    .dashboard-grid-container { grid-template-columns: 1fr; }
+    .dashboard-grid-container .card { height: auto; min-height: 350px; }
+
+    body.page-licitacoes main.container,
+    body.page-cadastros main.container {
+        padding: 1rem;
+        overflow: visible;
+    }
+    body.page-licitacoes main.container .card,
+    body.page-cadastros main.container .card {
+        display: block;
+        flex-grow: 0;
+    }
+    .table-scroll-container {
+        flex-grow: 0;
+        overflow-y: hidden;
+        overflow-x: auto;
+    }
+    .table-scroll-container th,
+    .table-scroll-container td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    body.page-dashboard main.container { padding: 1rem; }
+    .kpi-container { gap: 1rem; }
+    .dashboard-grid-container { gap: 1rem; }
+    body.page-dashboard .card { padding: 1rem; }
+}
+
+@media (max-width: 480px) {
+    .login-logo {
+        max-width: 140px;
+        margin-bottom: 2rem;
+    }
+    .login-card {
+        padding: 1.5rem;
+    }
+}
+
+#dashboard-filter-form {
+    border: 1px solid var(--cor-borda);
+    padding: 4px;
+    border-radius: var(--raio-borda);
+    background-color: var(--cor-painel);
+}
+
+#dashboard-filter-form label {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+#dashboard-filter-form #year-filter {
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--cor-texto-primario);
+    padding: 0.5em 0.85em;
+    cursor: pointer;
+}
+
+#dashboard-filter-form #year-filter:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--cor-destaque);
+    border-radius: var(--raio-borda);
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-header h2 {
+    margin: 0;
+}
+
+.dashboard-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dashboard-filter label {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--cor-texto-secundario);
+}
+
+.dashboard-filter select {
+    background-color: transparent;
+    border: 1px solid var(--cor-borda);
+    padding: 0.5em 0.85em;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--raio-borda);
+    color: var(--cor-texto-primario);
+}
+
+.pca-actions-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pca-actions-container form {
+    margin: 0;
+}

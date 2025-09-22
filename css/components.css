@@ -1,0 +1,354 @@
+/* ==========================================================================
+   Componentes Gerais
+   ========================================================================== */
+
+.btn { display: inline-block; padding: 0.625em 1em; border-radius: var(--raio-borda); border: 1px solid var(--cor-borda); background: transparent; color: var(--cor-texto-primario); font-weight: 600; cursor: pointer; text-align: center; transition: var(--transicao); text-decoration: none; white-space: nowrap; }
+.btn.primary { background: var(--cor-destaque); border-color: var(--cor-destaque); color: white; }
+.btn.good { background-color: var(--cor-sucesso); border-color: var(--cor-sucesso); color: white; }
+.btn.warn { background-color: var(--cor-perigo); border-color: var(--cor-perigo); color: white; }
+.btn:hover { opacity: .9; transform: translateY(-1px); }
+.btn.btn-sm {
+    padding: 0.5em 0.85em;
+    font-size: 0.875rem;
+}
+.btn.login {margin-top: 12px;}
+
+.dropdown-relatorio {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-relatorio .btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown-relatorio-content {
+  display: none;
+  position: absolute;
+  background-color: var(--cor-painel);
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 20;
+  border-radius: var(--raio-borda);
+  border: 1px solid var(--cor-borda);
+  margin-top: 1px;
+}
+
+.dropdown-relatorio-content a {
+  color: var(--cor-texto-secundario);
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-relatorio-content a:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--cor-texto-primario);
+}
+
+.dropdown-relatorio:hover .dropdown-relatorio-content {
+  display: block;
+}
+
+.card { background: var(--cor-painel); border-radius: var(--raio-borda); padding: 24px; }
+
+label { display: block; margin: 16px 0 8px; color: var(--cor-texto-secundario); font-weight: 500; text-align: left; }
+
+/* Tamanho padrão para campos de formulário */
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--raio-borda);
+    background: #0e1430;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto-primario);
+    font-size: 16px;
+    transition: var(--transicao);
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); outline: none; }
+
+.chip { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; background-color: var(--cor-borda); color: var(--cor-texto-primario); }
+.chip.error { background-color: rgba(239, 68, 68, 0.1); color: var(--cor-perigo); border: 1px solid var(--cor-perigo); }
+.muted { color: var(--cor-texto-secundario); font-size: 0.9rem; }
+
+
+/* ===== AJUSTE FINAL NO TOOLBAR E NOS FILTROS ===== */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.toolbar .right {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.toolbar form.inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.text-wrap {
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 350px;
+    min-width: 200px;
+}
+
+.toolbar form.inline input,
+.toolbar form.inline select {
+    font-size: 14px;
+    padding: 8px 10px;
+}
+
+.toolbar form.inline .searchable-select-container .searchable-select-input {
+    font-size: 14px;
+    padding: 8px 10px;
+}
+
+.toolbar form.inline input,
+.toolbar form.inline select,
+.toolbar form.inline .searchable-select-container {
+    flex: 1 1 160px;
+    min-width: 160px;
+}
+
+.toolbar form.inline .btn {
+    flex: 1 1 auto;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+/* ===== FIM DO AJUSTE ===== */
+
+
+.grid { display: grid; gap: 1rem; }
+.grid.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* ==========================================================================
+   Estilos de Tabelas
+   ========================================================================== */
+.table-scroll-container { flex-grow: 1; overflow: auto; }
+.table-scroll-container table { width: 100%; border-collapse: collapse; }
+.table-scroll-container th { position: sticky; top: 0; background: var(--cor-painel); z-index: 1; }
+.table-scroll-container th, .table-scroll-container td { padding: 12px 16px; border-bottom: 1px solid var(--cor-borda); text-align: left; vertical-align: middle; }
+
+/* ==========================================================================
+   Pop-ups
+   ========================================================================== */
+.popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 100; padding: 1rem; }
+.popup-overlay:target { opacity: 1; visibility: visible; }
+.popup-card { width: 95%; max-width: 1800px; position: relative; transform: scale(0.9); transition: all 0.3s ease; max-height: 120vh; overflow: hidden; display: flex; flex-direction: column; }
+.popup-card.popup-small { max-width: 500px; overflow: visible; }
+.popup-overlay:target .popup-card { transform: scale(1); }
+.popup-close { position: absolute; top: 10px; right: 20px; font-size: 2rem; color: var(--cor-texto-secundario); text-decoration: none; line-height: 1; z-index: 10; }
+
+.form-popup { display: flex; flex-direction: column; flex-grow: 1; min-height: 0; }
+.popup-content { flex-grow: 1; overflow-y: auto; padding-right: 1rem; height: 55vh;}
+.form-actions { flex-shrink: 0; padding-top: 1rem; border-top: 1px solid var(--cor-borda); display: flex; gap: 1rem; justify-content: flex-end; background: var(--cor-painel); margin: 1rem -24px -24px -24px; padding: 1rem 24px; }
+.form-actions button:first-child { margin-right: auto; }
+
+/* ==========================================================================
+   Componente de Paginação
+   ========================================================================== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pagination a,
+.pagination span {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: var(--raio-borda);
+  border: 1px solid var(--cor-borda);
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: var(--transicao);
+}
+
+.pagination a:hover {
+  background-color: var(--cor-painel);
+  color: var(--cor-texto-primario);
+  border-color: var(--cor-destaque);
+}
+
+.pagination span.current {
+  background: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+  color: white;
+  cursor: default;
+}
+
+.pagination span.disabled {
+  color: #4a5568;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ==========================================================================
+   Componente Seletor de Tema
+   ========================================================================== */
+
+.themes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    background-color: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transicao);
+}
+
+.theme-option:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--cor-destaque);
+}
+
+.theme-name {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--cor-texto-primario);
+}
+
+.theme-palette {
+    display: flex;
+    gap: 4px;
+}
+
+.theme-palette span {
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* === Prioridade Radio Buttons (VERSÃO CORRIGIDA) === */
+.priority-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.priority-selector .priority-option {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+.priority-selector input[type="radio"] {
+    display: none;
+}
+.priority-selector label {
+    margin: 0;
+}
+.priority-selector .radio-custom {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #555;
+    display: inline-block;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+}
+
+.priority-selector .radio-low { border-color: #2ecc71; }
+.priority-selector .radio-medium { border-color: #f1c40f; }
+.priority-selector .radio-high { border-color: #e74c3c; }
+
+.priority-selector input[type="radio"]:checked + .radio-custom.radio-low {
+    background-color: #2ecc71;
+    box-shadow: 0 0 5px #2ecc71;
+}
+.priority-selector input[type="radio"]:checked + .radio-custom.radio-medium {
+    background-color: #f1c40f;
+    box-shadow: 0 0 5px #f1c40f;
+}
+.priority-selector input[type="radio"]:checked + .radio-custom.radio-high {
+    background-color: #e74c3c;
+    box-shadow: 0 0 5px #e74c3c;
+}
+
+/* Regras para as bordas das linhas da tabela */
+tr.priority-low {
+    border-left: 2px solid #2ecc71;
+}
+tr.priority-medium {
+    border-left: 2px solid #f1c40f;
+}
+tr.priority-high {
+    border-left: 2px solid #e74c3c;
+}
+
+.status-vencimento { font-weight: bold; padding: 4px 8px; border-radius: 4px; color: white; text-align: center; white-space: nowrap; }
+.status-vencimento.ok { background-color: var(--cor-sucesso); }
+.status-vencimento.atencao { background-color: var(--cor-aviso); }
+.status-vencimento.expirado { background-color: var(--cor-perigo); }
+
+/* ==========================================================================
+   Estilos Responsivos Gerais (Base e Componentes)
+   ========================================================================== */
+
+@media (max-width: 1200px) {
+  main.container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 992px) {
+  body {
+    font-size: 15px;
+  }
+  .toolbar .right {
+    margin-left: 0;
+  }
+  .grid.grid-2,
+  .grid.grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 1rem;
+  }
+  .popup-card {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  .popup-close {
+      top: 15px;
+      right: 25px;
+  }
+}

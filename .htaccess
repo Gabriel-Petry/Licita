@@ -1,0 +1,16 @@
+php_value display_errors Off
+php_value mbstring.http_input auto
+php_value date.timezone America/Sao_Paulo
+# Desativa funcionalidades que podem causar conflitos
+Options -MultiViews -Indexes
+# Ativa o motor de reescrita de URL
+RewriteEngine On
+# Define o diretório base para as regras
+RewriteBase /
+# Não reescreve URLs que já apontam para um ficheiro existente
+RewriteCond %{REQUEST_FILENAME} !-f
+# Não reescreve URLs que já apontam para um diretório existente
+RewriteCond %{REQUEST_FILENAME} !-d
+# Regra principal: reescreve tudo o que não for um ficheiro ou diretório para o index.php
+# O [L] significa que esta é a última regra a ser processada.
+RewriteRule . /index.php [L]
