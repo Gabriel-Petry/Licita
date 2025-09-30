@@ -41,31 +41,27 @@ function renderDashboardCharts(data) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const tooltip = document.getElementById('calendar-tooltip');
-  const calendarDaysWithEvents = document.querySelectorAll('.calendario td[data-tooltip]');
+document.addEventListener('input', function(event) {
+    if (event.target && event.target.matches('input[name="inicio_vigencia"]')) {
 
-  calendarDaysWithEvents.forEach(day => {
-    day.addEventListener('mousemove', (e) => {
-      tooltip.innerHTML = day.getAttribute('data-tooltip');
-      tooltip.classList.add('visible');
+        const campoInicio = event.target;
+        const formAtual = campoInicio.closest('form');
+        if (!formAtual) return;
 
-      let top = e.pageY + 15;
-      let left = e.pageX + 15;
+        const displayElement = formAtual.querySelector('.texto-validade-calculada');
+        if (!displayElement) return;
 
-      if (left + tooltip.offsetWidth > window.innerWidth) {
-        left = e.pageX - tooltip.offsetWidth - 15;
-      }
-      if (top + tooltip.offsetHeight > window.innerHeight) {
-        top = e.pageY - tooltip.offsetHeight - 15;
-      }
+        if (campoInicio.value) {
+            const dataInicio = new Date(campoInicio.value + 'T00:00:00');
+            dataInicio.setDate(dataInicio.getDate() + 365);
+            
+            const dia = String(dataInicio.getDate()).padStart(2, '0');
+            const mes = String(dataInicio.getMonth() + 1).padStart(2, '0');
+            const ano = dataInicio.getFullYear();
 
-      tooltip.style.left = left + 'px';
-      tooltip.style.top = top + 'px';
-    });
-
-    day.addEventListener('mouseleave', () => {
-      tooltip.classList.remove('visible');
-    });
-  });
+            displayElement.textContent = `${dia}/${mes}/${ano}`;
+        } else {
+            displayElement.textContent = '--';
+        }
+    }
 });
