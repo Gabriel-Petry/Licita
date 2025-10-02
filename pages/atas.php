@@ -13,6 +13,7 @@ $pdo = db();
 $user = current_user();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // ... (nenhuma alteração na lógica POST)
     $action = $_POST['action'] ?? '';
     try {
         if ($action === 'create' && tem_permissao('atas.criar')) {
@@ -84,9 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// Lógica de busca e filtragem (sem alteração)
 $where = [];
 $params = [];
 $current_orgao_id = $_GET['orgao_id'] ?? 0;
+$current_status_assinatura = $_GET['status_assinatura'] ?? '';
 
 if ($user['orgao_id'] && !tem_permissao('dados.ver_todos_orgaos')) {
     $where[] = "l.orgao_id = :user_orgao_id";
@@ -101,6 +104,10 @@ if (!empty($current_orgao_id)) {
     $where[] = "l.orgao_id = :orgao_id";
     $params[':orgao_id'] = $current_orgao_id;
 }
+if ($current_status_assinatura !== '') {
+    $where[] = "a.assinado = :status_assinatura";
+    $params[':status_assinatura'] = $current_status_assinatura;
+}
 
 $where_clause = $where ? " WHERE " . implode(" AND ", $where) : "";
 
@@ -114,14 +121,81 @@ $sql = "SELECT
         LEFT JOIN licitacoes l ON l.id = a.licitacao_id 
         LEFT JOIN fornecedores f ON f.id = a.fornecedor_id
         $where_clause 
-        ORDER BY a.id DESC";
+        ORDER BY 
+            CAST(SUBSTRING_INDEX(a.numero_ata, '/', -1) AS UNSIGNED) DESC, 
+            CAST(SUBSTRING_INDEX(a.numero_ata, '/', 1) AS UNSIGNED) DESC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $atas = $stmt->fetchAll();
 
-$licitacoes = $pdo->query("SELECT id, processo, n_edital, objeto FROM licitacoes WHERE modalidade_id IN (4, 5, 8) ORDER BY processo DESC")->fetchAll();
+// NOVA PARTE 1: Função para renderizar apenas a tabela
+function render_atas_table_content($atas, $permissoes) {
+    ob_start();
+?>
+    <table>
+        <thead>
+            <tr>
+                <th>Nº Ata</th>
+                <th>Licitação Vinculada</th>
+                <th>Fornecedor</th>
+                <th>Status Assinatura</th>
+                <th>Vigência</th>
+                <th>Tempo Restante</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (count($atas) > 0): foreach ($atas as $ata):
+                $status_texto = '--'; $status_classe = '';
+                if (!empty($ata['validade'])) {
+                    $dias_restantes = (new DateTime())->diff(new DateTime($ata['validade']))->format('%r%a');
+                    if ($dias_restantes < 0) { $status_texto = 'Expirado'; $status_classe = 'expirado'; }
+                    elseif ($dias_restantes <= 30) { $status_texto = $dias_restantes . ' dia(s)'; $status_classe = 'atencao'; }
+                    else { $status_texto = $dias_restantes . ' dia(s)'; $status_classe = 'ok'; }
+                }
+            ?>
+                <tr>
+                    <td><?= htmlspecialchars($ata['numero_ata']) ?></td>
+                    <td><?= str_replace(' ', '<br>', htmlspecialchars($ata['licitacao_processo'])) ?></td>
+                    <td><?= wordwrap(htmlspecialchars($ata['fornecedor_nome']), 35,"<br>\n", true) ?></td>
+                    <td>
+                        <?php if ($ata['assinado']): ?>
+                            <span class="chip good">Assinada</span>
+                        <?php else: ?>
+                            <span class="chip warn">Pendente</span>
+                        <?php endif; ?>
+                    </td>
+                    <td><?= !empty($ata['inicio_vigencia']) ? htmlspecialchars(date('d/m/Y', strtotime($ata['inicio_vigencia']))) : '--' ?> a <?= !empty($ata['validade']) ? htmlspecialchars(date('d/m/Y', strtotime($ata['validade']))) : '--' ?></td>
+                    <td><span class="status-vencimento <?= $status_classe ?>"><?= $status_texto ?></span></td>
+                    <td class="actions-cell">
+                        <a href="#contato-fornecedor-<?= $ata['id'] ?>" class="btn btn-sm info">Contato</a>
+                        <?php if ($permissoes['atas.editar']): ?>
+                            <a href="#editar-ata-popup-<?= $ata['id'] ?>" class="btn btn-sm">Editar</a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; else: ?>
+                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Nenhuma ata encontrada.</td></tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+<?php
+    return ob_get_clean();
+}
 
+// NOVA PARTE 2: Detecção da requisição AJAX
+$is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+// Se for ajax, renderiza apenas a tabela e termina a execução
+if ($is_ajax) {
+    // Passamos um array de permissões para a função, pois a função `tem_permissao` não estará disponível dentro dela
+    echo render_atas_table_content($atas, ['atas.editar' => tem_permissao('atas.editar')]);
+    exit;
+}
+
+// Se não for AJAX, continua e carrega a página inteira
+$licitacoes = $pdo->query("SELECT id, processo, n_edital, objeto FROM licitacoes WHERE modalidade_id IN (4, 5, 8) ORDER BY processo DESC")->fetchAll();
 $fornecedores = $pdo->query("SELECT id, nome FROM fornecedores ORDER BY nome")->fetchAll();
 $orgaos = $pdo->query("SELECT id, nome FROM orgaos ORDER BY nome")->fetchAll();
 
@@ -131,7 +205,7 @@ render_header('Atas de Registro de Preço');
 <div class="card">
     <?php display_flash_message(); ?>
     <div class="toolbar" style="flex-wrap: wrap; justify-content: flex-start;">
-        <a href="/atas" class="btn btn-sm <?= empty($current_orgao_id) ? 'primary' : '' ?>">Todas</a>
+        <a href="/atas" class="btn btn-sm <?= empty($current_orgao_id) && $current_status_assinatura === '' ? 'primary' : '' ?>">Todas</a>
         <?php foreach ($orgaos as $orgao): ?>
             <a href="/atas?orgao_id=<?= $orgao['id'] ?>" class="btn btn-sm <?= (int)$current_orgao_id === $orgao['id'] ? 'primary' : '' ?>"><?= htmlspecialchars($orgao['nome']) ?></a>
         <?php endforeach; ?>
@@ -139,7 +213,15 @@ render_header('Atas de Registro de Preço');
     <div class="toolbar">
         <form class="inline" method="get" id="atas-filter-form">
             <?php if (!empty($current_orgao_id)): ?><input type="hidden" name="orgao_id" value="<?= htmlspecialchars($current_orgao_id) ?>"><?php endif; ?>
+            
             <input type="text" name="q" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" placeholder="Buscar por Nº, Objeto, Processo ou Fornecedor...">
+            
+            <select name="status_assinatura" style="margin-left: 8px;">
+                <option value="" <?= $current_status_assinatura === '' ? 'selected' : '' ?>>Status: Todas</option>
+                <option value="1" <?= $current_status_assinatura === '1' ? 'selected' : '' ?>>Assinadas</option>
+                <option value="0" <?= $current_status_assinatura === '0' ? 'selected' : '' ?>>Pendentes</option>
+            </select>
+
             <?php if (tem_permissao('relatorios.gerar')): ?>
             <div class="dropdown-relatorio" style="margin-left: 8px;">
                 <button type="button" class="btn">Gerar Relatório &#9662;</button>
@@ -155,54 +237,11 @@ render_header('Atas de Registro de Preço');
         <?php endif; ?>
     </div>
 
-    <div class="table-scroll-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Nº Ata</th>
-                    <th>Licitação Vinculada</th>
-                    <th>Fornecedor</th>
-                    <th>Status Assinatura</th>
-                    <th>Vigência</th>
-                    <th>Tempo Restante</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (count($atas) > 0): foreach ($atas as $ata):
-                    $status_texto = '--'; $status_classe = '';
-                    if (!empty($ata['validade'])) {
-                        $dias_restantes = (new DateTime())->diff(new DateTime($ata['validade']))->format('%r%a');
-                        if ($dias_restantes < 0) { $status_texto = 'Expirado'; $status_classe = 'expirado'; }
-                        elseif ($dias_restantes <= 30) { $status_texto = $dias_restantes . ' dia(s)'; $status_classe = 'atencao'; }
-                        else { $status_texto = $dias_restantes . ' dia(s)'; $status_classe = 'ok'; }
-                    }
-                ?>
-                    <tr>
-                        <td><?= htmlspecialchars($ata['numero_ata']) ?></td>
-                        <td><?= htmlspecialchars($ata['licitacao_processo']) ?></td>
-                        <td><?= htmlspecialchars($ata['fornecedor_nome']) ?></td>
-                        <td>
-                            <?php if ($ata['assinado']): ?>
-                                <span class="chip good">Assinada</span>
-                            <?php else: ?>
-                                <span class="chip warn">Pendente</span>
-                            <?php endif; ?>
-                        </td>
-                        <td><?= !empty($ata['inicio_vigencia']) ? htmlspecialchars(date('d/m/Y', strtotime($ata['inicio_vigencia']))) : '--' ?> a <?= !empty($ata['validade']) ? htmlspecialchars(date('d/m/Y', strtotime($ata['validade']))) : '--' ?></td>
-                        <td><span class="status-vencimento <?= $status_classe ?>"><?= $status_texto ?></span></td>
-                        <td class="actions-cell">
-                             <a href="#contato-fornecedor-<?= $ata['id'] ?>" class="btn btn-sm info">Contato</a>
-                            <?php if (tem_permissao('atas.editar')): ?>
-                                <a href="#editar-ata-popup-<?= $ata['id'] ?>" class="btn btn-sm">Editar</a>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; else: ?>
-                    <tr><td colspan="7" style="text-align: center; padding: 2rem;">Nenhuma ata encontrada.</td></tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+    <div class="table-scroll-container" id="atas-table-container">
+        <?php 
+            // Chamada da função para renderizar a tabela no carregamento inicial da página
+            echo render_atas_table_content($atas, ['atas.editar' => tem_permissao('atas.editar')]); 
+        ?>
     </div>
 </div>
 

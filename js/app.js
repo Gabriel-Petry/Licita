@@ -1,14 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-    /**
-     * ====== LÓGICA DE LEITURA DO TOKEN DE SEGURANÇA ======
-     * Esta é a forma correta e robusta de obter o token.
-     */
     const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    /**
-     * ====== MENU HAMBÚRGUER ======
-     */
     const navToggle = document.getElementById('nav-toggle');
     const navMenu = document.getElementById('nav-menu');
 
@@ -39,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Lógica para o popup de homologação em licitacoes.php
     const urlParams = new URLSearchParams(window.location.search);
     const homologarId = urlParams.get('homologar');
 
@@ -53,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Lógica para o pop-up de desomologação em homologadas.php
     document.querySelectorAll('.btn-desomologar').forEach(button => {
         button.addEventListener('click', (e) => {
             const licitacaoId = e.target.dataset.id;
@@ -66,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Lógica para o pop-up de consulta de homologadas.php
     document.querySelectorAll('.btn-consultar').forEach(button => {
         button.addEventListener('click', (e) => {
             const targetPopupId = e.currentTarget.hash.substring(1);
@@ -124,8 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    
-    //Preenchimento automático do objeto do contrato.
     document.querySelectorAll('.popup-overlay form').forEach(form => {
         const licitacaoSelect = form.querySelector('select[name="licitacao_id"]');
         const objetoTextarea = form.querySelector('textarea[name="objeto"]');
@@ -139,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-     //LÓGICA DE ALTERAÇÃO E PERSISTÊNCIA DO TEMA
     const themePopup = document.getElementById('themes-popup');
     if (themePopup) {
         themePopup.addEventListener('click', (event) => {
@@ -192,10 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /**
-     * Inicializa a funcionalidade de filtro automático para um formulário específico.
      * @param {string} formId - O ID do formulário de filtro.
      * @param {string} containerId - O ID do container onde o conteúdo da tabela será renderizado.
      */
+
     const initAutoFiltering = (formId, containerId) => {
         const form = document.getElementById(formId);
         const container = document.getElementById(containerId);
@@ -243,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Inicializa todos os filtros automáticos
     initAutoFiltering('filter-form', 'licitacoes-table-container');
     initAutoFiltering('resumo-filter-form', 'resumo-table-container');
     initAutoFiltering('diretas-filter-form', 'diretas-table-container');
