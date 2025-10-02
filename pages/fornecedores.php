@@ -11,22 +11,51 @@ if (!tem_permissao('fornecedores.ver')) {
 check_csrf();
 $pdo = db();
 
+function formatar_cnpj($cnpj) {
+    $cnpj_limpo = preg_replace('/[^0-9]/', '', $cnpj);
+
+    if (strlen($cnpj_limpo) != 14) {
+        return null;
+    }
+
+    return vsprintf('%s%s.%s%s%s.%s%s%s/%s%s%s%s-%s%s', str_split($cnpj_limpo));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     try {
+        $cnpj_formatado = isset($_POST['cnpj']) ? formatar_cnpj($_POST['cnpj']) : null;
+        if (isset($_POST['cnpj']) && $cnpj_formatado === null) {
+            throw new Exception('CNPJ inválido. Verifique o número digitado.');
+        }
+
         if ($action === 'create') {
             if (!tem_permissao('fornecedores.criar')) throw new Exception('Acesso negado.');
+            
+            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM fornecedores WHERE cnpj = :cnpj");
+            $stmt_check->execute([':cnpj' => $cnpj_formatado]);
+            if ($stmt_check->fetchColumn() > 0) {
+                throw new Exception('Este CNPJ já está cadastrado no sistema.');
+            }
+
             $stmt = $pdo->prepare(
                 "INSERT INTO fornecedores (nome, cnpj, contato) VALUES (:nome, :cnpj, :contato)"
             );
-            $stmt->execute([':nome' => $_POST['nome'], ':cnpj' => $_POST['cnpj'], ':contato' => $_POST['contato'] ?? null]);
+            $stmt->execute([':nome' => $_POST['nome'], ':cnpj' => $cnpj_formatado, ':contato' => $_POST['contato'] ?? null]);
             $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Fornecedor cadastrado com sucesso!'];
 
         } elseif ($action === 'update') {
             if (!tem_permissao('fornecedores.editar')) throw new Exception('Acesso negado.');
+
+            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM fornecedores WHERE cnpj = :cnpj AND id != :id");
+            $stmt_check->execute([':cnpj' => $cnpj_formatado, ':id' => $_POST['id']]);
+            if ($stmt_check->fetchColumn() > 0) {
+                throw new Exception('Este CNPJ já pertence a outro fornecedor cadastrado.');
+            }
+
             $stmt = $pdo->prepare("UPDATE fornecedores SET nome=:nome, cnpj=:cnpj, contato=:contato WHERE id=:id");
-            $stmt->execute([':id' => $_POST['id'], ':nome' => $_POST['nome'], ':cnpj' => $_POST['cnpj'], ':contato' => $_POST['contato'] ?? null]);
+            $stmt->execute([':id' => $_POST['id'], ':nome' => $_POST['nome'], ':cnpj' => $cnpj_formatado, ':contato' => $_POST['contato'] ?? null]);
             $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Fornecedor atualizado com sucesso!'];
 
         } elseif ($action === 'delete') {
@@ -96,8 +125,8 @@ function render_fornecedores_table_content($fornecedores, $total_items, $items_p
                 </tr>
                 <?php endforeach; ?>
                  <?php if (empty($fornecedores)): ?>
-                    <tr><td colspan="4" style="text-align:center; padding: 1.5rem;">Nenhum fornecedor encontrado.</td></tr>
-                <?php endif; ?>
+                     <tr><td colspan="4" style="text-align:center; padding: 1.5rem;">Nenhum fornecedor encontrado.</td></tr>
+                 <?php endif; ?>
             </tbody>
         </table>
     </div>
