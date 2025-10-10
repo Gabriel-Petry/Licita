@@ -28,7 +28,9 @@ $routes = [
     '/gerar_relatorio' => 'gerar_relatorio.php',
     '/pca' => 'pca.php',
     '/demandas' => 'demandas.php',
-    '/salvar_tema' => 'salvar_tema.php'
+    '/salvar_tema' => 'salvar_tema.php',
+    '/fluxogramas' => 'fluxograma.php',
+    '/salvar-fluxograma' => 'salvar_fluxograma.php'
 ];
 
 if (array_key_exists($route, $routes)) {
