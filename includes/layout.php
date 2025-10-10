@@ -50,7 +50,7 @@ function display_flash_message() {
 }
 
 function render_header(string $title = "LicitAções", array $options = []) {
-    $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self';";
+$csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self';";
     header("Content-Security-Policy: " . $csp);
     $user = current_user();
     $bodyClass = $options['bodyClass'] ?? '';
@@ -76,6 +76,8 @@ function render_header(string $title = "LicitAções", array $options = []) {
         <link rel="stylesheet" href="/css/pages.css<?= $cache_bust ?>">
         <link rel="stylesheet" href="/css/searchable-select.css<?= $cache_bust ?>">
         <link rel="stylesheet" href="/css/theme.css<?= $cache_bust ?>">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.1/joint.min.css" />
+    	<link rel="stylesheet" href="/css/fluxograma.css">
     </head>
     <body class="<?= htmlspecialchars($bodyClass) ?>" data-theme="<?= htmlspecialchars($userTheme) ?>">
         <?php if ($showHeader): ?>
@@ -114,6 +116,7 @@ function render_header(string $title = "LicitAções", array $options = []) {
                                 <?php if (tem_permissao('atas.ver')): ?><a href="/atas">Atas</a><?php endif; ?>
                                 <?php if (tem_permissao('parametros.gerenciar')): ?><a href="/cadastros">Parâmetros</a><?php endif; ?>
                                 <?php if (tem_permissao('fornecedores.ver')): ?><a href="/fornecedores">Fornecedores</a><?php endif; ?>
+                                <a href="/fluxogramas">Fluxogramas</a>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -148,6 +151,7 @@ function render_header(string $title = "LicitAções", array $options = []) {
                         <?php if (tem_permissao('atas.ver')): ?><a href="/atas">Atas</a><?php endif; ?>
                         <?php if (tem_permissao('parametros.gerenciar')): ?><a href="/cadastros">Parâmetros</a><?php endif; ?>
                         <?php if (tem_permissao('fornecedores.ver')): ?><a href="/fornecedores">Fornecedores</a><?php endif; ?>
+                    	<a href="/fluxogramas">Fluxograma</a>
                         
                         <span class="nav-mobile-divider"><?= htmlspecialchars($user["nome"]) ?></span>
                         <a href="#alterar-senha-popup">Alterar Senha</a>
