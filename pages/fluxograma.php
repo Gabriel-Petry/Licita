@@ -1,19 +1,52 @@
 <?php
 
 require_once __DIR__ . '/../includes/layout.php';
+require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
+
+require_login();
+
+$fluxograma_id = $_GET['id'] ?? null;
+$fluxograma_dados = null;
+$fluxograma_nome = '';
+
+if ($fluxograma_id) {
+    try {
+        $pdo = db();
+        $stmt = $pdo->prepare("SELECT nome, dados_json FROM fluxogramas WHERE id = :id AND usuario_id = :usuario_id");
+        $stmt->execute([':id' => $fluxograma_id, ':usuario_id' => current_user()['id']]);
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($resultado) {
+            $fluxograma_nome = $resultado['nome'];
+            $fluxograma_dados = $resultado['dados_json'];
+        } else {
+            set_flash_message('error', 'Fluxograma não encontrado ou você não tem permissão para editá-lo.');
+            $fluxograma_id = null;
+        }
+    } catch (PDOException $e) {
+        set_flash_message('error', 'Erro ao carregar o fluxograma.');
+        $fluxograma_id = null;
+    }
+}
 
 $page_scripts = [
     'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.0/backbone-min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.1/joint.min.js',
-    '/js/fluxograma.js' 
+    '/js/fluxograma.js'
 ];
 
 render_header('Editor de Fluxograma', ['scripts' => $page_scripts]);
-
 ?>
+
+<div 
+    id="editor-data" 
+    data-fluxograma-id="<?= htmlspecialchars($fluxograma_id ?? '') ?>"
+    data-fluxograma-dados='<?= $fluxograma_dados ?>'
+></div>
+
 
 <div class="card">
     <div class="card-header">
@@ -21,11 +54,12 @@ render_header('Editor de Fluxograma', ['scripts' => $page_scripts]);
         <p>Arraste os componentes para a área de desenho. Use CTRL+Roda do Mouse para zoom e ALT+Arrastar para mover a tela.</p>
 
         <div class="save-form">
-            <input type="text" id="fluxograma-nome" placeholder="Dê um nome ao seu fluxograma">
+            <input type="text" id="fluxograma-nome" placeholder="Dê um nome ao seu fluxograma" value="<?= htmlspecialchars($fluxograma_nome) ?>">
+            <input type="hidden" id="fluxograma-id" value="<?= htmlspecialchars($fluxograma_id ?? '') ?>">
             <button class="btn primary" id="btn-salvar-fluxograma">Salvar</button>
         </div>
     </div>
-
+    
     <div id="app-container">
         <div id="sidebar">
             <h3>Componentes</h3>

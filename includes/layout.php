@@ -99,6 +99,8 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                         <?php if (tem_permissao('pca.gerenciar') || tem_permissao('demandas.criar')): ?>
                             <a href="/pca">Plano Anual (PCA)</a>
                         <?php endif; ?>
+                    
+                        <?php if (tem_permissao('fluxogramas.ver')): ?><a href="/fluxogramas">Fornecedores</a><?php endif; ?>
 
                         <?php // Dropdown de Cadastros só aparece se o usuário tiver permissão para ver PELO MENOS UM item
                         if (
@@ -116,7 +118,6 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                                 <?php if (tem_permissao('atas.ver')): ?><a href="/atas">Atas</a><?php endif; ?>
                                 <?php if (tem_permissao('parametros.gerenciar')): ?><a href="/cadastros">Parâmetros</a><?php endif; ?>
                                 <?php if (tem_permissao('fornecedores.ver')): ?><a href="/fornecedores">Fornecedores</a><?php endif; ?>
-                                <a href="/fluxogramas">Fluxogramas</a>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -142,6 +143,7 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                         <?php if (tem_permissao('dashboard.ver')): ?><a href="/dashboard">Dashboard</a><?php endif; ?>
                         <?php if (tem_permissao('licitacoes.ver')): ?><a href="/resumo">Resumo</a><?php endif; ?>
                         <?php if (tem_permissao('pca.gerenciar') || tem_permissao('demandas.criar')): ?><a href="/pca">Plano Anual (PCA)</a><?php endif; ?>
+                        <?php if (tem_permissao('fluxogramas.ver')): ?><a href="/fluxogramas">Fornecedores</a><?php endif; ?>
                         
                         <span class="nav-mobile-divider">Cadastros</span>
                         <?php if (tem_permissao('licitacoes.ver')): ?><a href="/licitacoes">Licitações</a><?php endif; ?>
@@ -151,7 +153,7 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                         <?php if (tem_permissao('atas.ver')): ?><a href="/atas">Atas</a><?php endif; ?>
                         <?php if (tem_permissao('parametros.gerenciar')): ?><a href="/cadastros">Parâmetros</a><?php endif; ?>
                         <?php if (tem_permissao('fornecedores.ver')): ?><a href="/fornecedores">Fornecedores</a><?php endif; ?>
-                    	<a href="/fluxogramas">Fluxograma</a>
+                    	
                         
                         <span class="nav-mobile-divider"><?= htmlspecialchars($user["nome"]) ?></span>
                         <a href="#alterar-senha-popup">Alterar Senha</a>

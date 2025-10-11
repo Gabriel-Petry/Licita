@@ -29,8 +29,9 @@ $routes = [
     '/pca' => 'pca.php',
     '/demandas' => 'demandas.php',
     '/salvar_tema' => 'salvar_tema.php',
-    '/fluxogramas' => 'fluxograma.php',
-    '/salvar-fluxograma' => 'salvar_fluxograma.php'
+    '/fluxograma/editor' => 'fluxograma.php',
+    '/salvar-fluxograma' => 'salvar_fluxograma.php',
+    '/fluxogramas' => 'fluxogramas_listar.php'
 ];
 
 if (array_key_exists($route, $routes)) {

@@ -1,15 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- LÓGICA DO FILTRO DE ANO ---
     const yearSelect = document.getElementById('year-filter');
 
-    // Função principal para buscar dados e renderizar tudo
     const fetchDataAndRender = () => {
-        if (!yearSelect) return; // Se não houver filtro na página, não faz nada
+        if (!yearSelect) return;
         
         const selectedYear = yearSelect.value;
         const apiUrl = `/api_dashboard.php?year=${selectedYear}`;
 
-        // Adiciona um efeito de "loading" para o usuário saber que algo está a acontecer
         document.querySelector('.kpi-container').style.opacity = '0.5';
         document.querySelector('.dashboard-grid-container').style.opacity = '0.5';
 
@@ -21,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (data.error) throw new Error(data.error);
                 
-                // Atualiza os KPIs com os novos dados
                 document.getElementById('kpiLicitacoesAno').textContent = data.kpis.gerais.licitacoes_ano;
                 document.getElementById('kpiDiretasAno').textContent = data.kpis.gerais.diretas_ano;
                 document.getElementById('kpiHomologadasAno').textContent = data.kpis.gerais.homologadas_ano;
@@ -32,10 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('kpiEconomiaAno').textContent = 'R$ ' + (data.kpis.financeiros.economia_ano/1).toLocaleString('pt-BR', {minimumFractionDigits:2});
                 document.getElementById('kpiValorDiretasAno').textContent = 'R$ ' + (data.kpis.financeiros.valor_total_diretas_ano/1).toLocaleString('pt-BR', {minimumFractionDigits:2});
                 
-                // Chama a função para redesenhar todos os gráficos
                 renderDashboardCharts(data);
 
-                // Remove o efeito de "loading"
                 document.querySelector('.kpi-container').style.opacity = '1';
                 document.querySelector('.dashboard-grid-container').style.opacity = '1';
             })
@@ -48,16 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
 
-    // Adiciona o "ouvinte" que dispara a busca sempre que o ano for alterado
     if (yearSelect) {
         yearSelect.addEventListener('change', fetchDataAndRender);
     }
 
-    // Chama a função uma vez logo que a página carrega para buscar os dados iniciais
     fetchDataAndRender();
 
-
-    // --- LÓGICA DOS GRÁFICOS (função que você já tinha) ---
     function renderDashboardCharts(data) {
         if (!data) { console.error("Dados para os gráficos não foram fornecidos."); return; }
         
@@ -93,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- LÓGICA DO CALENDÁRIO (inalterada) ---
     const tooltip = document.getElementById('calendar-tooltip');
     if (tooltip) {
         document.querySelectorAll('.calendario td[data-tooltip]').forEach(day => {
