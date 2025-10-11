@@ -87,6 +87,20 @@ document.addEventListener('DOMContentLoaded', function() {
         validateConnection: (cellViewS, magnetS, cellViewT, magnetT, end, linkView) => (cellViewS !== cellViewT)
     });
 
+    const editorData = document.getElementById('editor-data');
+    if (editorData && editorData.dataset.fluxogramaDados && editorData.dataset.fluxogramaDados !== "null") {
+        try {
+            const dados = JSON.parse(editorData.dataset.fluxogramaDados);
+            if (dados) {
+                graph.fromJSON(dados);
+            }
+        } catch (e) {
+            console.error("Erro ao carregar os dados do fluxograma:", e);
+            alert("Não foi possível carregar os dados do fluxograma. O formato pode ser inválido.");
+        }
+    }
+
+
     const sidebar = document.getElementById('sidebar');
     sidebar.addEventListener('mousedown', function(e) {
         if (!e.target.classList.contains('shape-item')) return;
@@ -349,8 +363,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnSalvar) {
         btnSalvar.addEventListener('click', () => {
             const inputNome = document.getElementById('fluxograma-nome');
+            const inputId = document.getElementById('fluxograma-id');
             const nome = inputNome.value.trim();
-            
+            const id = inputId.value.trim();
+
             if (!nome) {
                 alert('Por favor, dê um nome ao seu fluxograma antes de salvar.');
                 inputNome.focus();
@@ -369,19 +385,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
+                    id: id,
                     nome: nome,
                     dados_json: dadosDoGrafico
                 })
             })
             .then(response => {
                 if (!response.ok) {
-                    return response.text().then(text => { throw new Error(`Erro do Servidor (Status ${response.status}): ${text}`) });
+                    return response.json().then(err => { throw new Error(err.mensagem || 'Erro no servidor') });
                 }
                 return response.json();
             })
             .then(data => {
                 if (data.sucesso) {
                     alert(data.mensagem);
+                    window.location.href = '/fluxogramas';
                 } else {
                     throw new Error(data.mensagem || 'Ocorreu um erro desconhecido no servidor.');
                 }

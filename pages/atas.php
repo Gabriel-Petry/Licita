@@ -13,7 +13,6 @@ $pdo = db();
 $user = current_user();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // ... (nenhuma alteração na lógica POST)
     $action = $_POST['action'] ?? '';
     try {
         if ($action === 'create' && tem_permissao('atas.criar')) {
@@ -85,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// Lógica de busca e filtragem (sem alteração)
 $where = [];
 $params = [];
 $current_orgao_id = $_GET['orgao_id'] ?? 0;
@@ -129,7 +127,6 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $atas = $stmt->fetchAll();
 
-// NOVA PARTE 1: Função para renderizar apenas a tabela
 function render_atas_table_content($atas, $permissoes) {
     ob_start();
 ?>
@@ -184,17 +181,13 @@ function render_atas_table_content($atas, $permissoes) {
     return ob_get_clean();
 }
 
-// NOVA PARTE 2: Detecção da requisição AJAX
 $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
-// Se for ajax, renderiza apenas a tabela e termina a execução
 if ($is_ajax) {
-    // Passamos um array de permissões para a função, pois a função `tem_permissao` não estará disponível dentro dela
     echo render_atas_table_content($atas, ['atas.editar' => tem_permissao('atas.editar')]);
     exit;
 }
 
-// Se não for AJAX, continua e carrega a página inteira
 $licitacoes = $pdo->query("SELECT id, processo, n_edital, objeto FROM licitacoes WHERE modalidade_id IN (4, 5, 8) ORDER BY processo DESC")->fetchAll();
 $fornecedores = $pdo->query("SELECT id, nome FROM fornecedores ORDER BY nome")->fetchAll();
 $orgaos = $pdo->query("SELECT id, nome FROM orgaos ORDER BY nome")->fetchAll();
@@ -239,7 +232,6 @@ render_header('Atas de Registro de Preço');
 
     <div class="table-scroll-container" id="atas-table-container">
         <?php 
-            // Chamada da função para renderizar a tabela no carregamento inicial da página
             echo render_atas_table_content($atas, ['atas.editar' => tem_permissao('atas.editar')]); 
         ?>
     </div>
