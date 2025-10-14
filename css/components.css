@@ -57,7 +57,6 @@
 
 label { display: block; margin: 16px 0 8px; color: var(--cor-texto-secundario); font-weight: 500; text-align: left; }
 
-/* Tamanho padrão para campos de formulário */
 input, select, textarea {
     width: 100%;
     padding: 12px;
@@ -75,8 +74,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); o
 .chip.error { background-color: rgba(239, 68, 68, 0.1); color: var(--cor-perigo); border: 1px solid var(--cor-perigo); }
 .muted { color: var(--cor-texto-secundario); font-size: 0.9rem; }
 
-
-/* ===== AJUSTE FINAL NO TOOLBAR E NOS FILTROS ===== */
 .toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -128,8 +125,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); o
     padding: 8px 10px;
     font-size: 14px;
 }
-/* ===== FIM DO AJUSTE ===== */
-
 
 .grid { display: grid; gap: 1rem; }
 .grid.grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -252,7 +247,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); o
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* === Prioridade Radio Buttons (VERSÃO CORRIGIDA) === */
 .priority-selector {
     display: flex;
     align-items: center;
@@ -297,7 +291,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); o
     box-shadow: 0 0 5px #e74c3c;
 }
 
-/* Regras para as bordas das linhas da tabela */
 tr.priority-low {
     border-left: 2px solid #2ecc71;
 }
