@@ -7,12 +7,21 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_only_cookies', 1);
-// ini_set('session.cookie_secure', 1);
-if (session_status() === PHP_SESSION_NONE) session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    session_start();
+}
 
 require_once __DIR__ . '/db.php';
+
+/**
+ * Verifica se o usuário está logado na sessão.
+ * @return bool
+ */
+function is_logged_in() {
+    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+}
 
 function csrf_token() {
     if (empty($_SESSION['csrf'])) {
@@ -48,7 +57,6 @@ function login($email, $password) {
     $u = $stmt->fetch();
 
     if ($u && password_verify($password, $u['senha_hash'])) {
-        // A CORREÇÃO ESTÁ AQUI: removemos o `true` para garantir que os dados da sessão sejam mantidos.
         session_regenerate_id(); 
         $_SESSION['user_id'] = $u['id'];
         
@@ -69,14 +77,14 @@ function login($email, $password) {
 }
 
 function require_login() {
-    if (empty($_SESSION['user_id'])) {
+    if (!is_logged_in()) {
         header('Location: /login');
         exit;
     }
 }
 
 function current_user() {
-    if (empty($_SESSION['user_id'])) {
+    if (!is_logged_in()) {
         return null;
     }
 
@@ -105,51 +113,4 @@ function logout() {
         );
     }
     session_destroy();
-}
-
-function generate_and_update_password(string $email): string|false {
-    $pdo = db();
-    $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");
-    $stmt->execute([':email' => $email]);
-    $user = $stmt->fetch();
-
-    if (!$user) {
-        return false;
-    }
-
-    $nova_senha = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'), 0, 10);
-    $novo_hash = password_hash($nova_senha, PASSWORD_DEFAULT);
-
-    $stmt = $pdo->prepare("UPDATE usuarios SET senha_hash = :hash, reset_token = NULL, reset_expires = NULL WHERE id = :id");
-    $stmt->execute([':hash' => $novo_hash, ':id' => $user['id']]);
-
-    return $nova_senha;
-}
-
-function send_new_password_email(string $user_email, string $new_password): bool {
-    $mail = new PHPMailer(true);
-
-    try {        
-        $mail->isSMTP();
-        $mail->Host       = 'smtp-relay.brevo.com';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = '965e1e001@smtp-brevo.com';
-        $mail->Password   = 'H3OMvUzkpS8PEFbA'; 
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587; 
-        $mail->CharSet    = 'UTF-8';
-
-        $mail->setFrom('965e1e001@smtp-brevo.com', 'Sistema LicitAções');
-        $mail->addAddress($user_email);
-
-        $mail->isHTML(true);
-        $mail->Subject = 'Sua nova senha de acesso ao Sistema LicitAções';
-        $mail->Body    = "Olá,<br><br>Uma nova senha foi gerada para seu acesso ao sistema LicitAções.<br><br>Sua nova senha é: <b>{$new_password}</b><br><br>Recomendamos que você altere esta senha após o primeiro login.<br><br>Atenciosamente,<br>Equipe LicitAções";
-        $mail->AltBody = "Olá,\n\nSua nova senha para o sistema LicitAções é: {$new_password}\n\nRecomendamos que você altere esta senha após o primeiro login.";
-
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        return false;
-    }
 }
