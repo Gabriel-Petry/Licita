@@ -31,11 +31,6 @@ body {
   margin: 0;
   background: var(--cor-fundo);
   color: var(--cor-texto-primario);
-  /*
-   * ALTERAÇÃO AQUI:
-   * A fonte agora usa '1rem', que é uma unidade relativa ao tamanho definido no <html>.
-   * Como o tamanho no <html> é fluido, o tamanho da fonte do body também se torna fluido.
-  */
   font: 1rem/1.5 var(--fonte-familia);
   display: flex;
   flex-direction: column;
@@ -43,17 +38,14 @@ body {
   overflow: hidden;
 }
 
-/* --- Estilos base para títulos --- */
 h1,h2,h3 { margin-top: 0; margin-bottom: 1.5rem; font-weight: 600; }
 
-/* ===== ALTERAÇÃO PARA RESPONSIVIDADE ===== */
+/* ===== RESPONSIVIDADE ===== */
 @media (max-width: 992px) {
   body {
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
-    overflow-x: hidden;
-    /* Reduz um pouco mais a fonte base em telas de tablet para baixo */
     font-size: 0.95rem;
   }
 }
