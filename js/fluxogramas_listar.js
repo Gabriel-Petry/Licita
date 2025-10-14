@@ -8,6 +8,50 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    const app = joint.shapes.app = {};
+
+    app.CustomDocument = joint.shapes.standard.Path.define('app.CustomDocument', {
+        attrs: {
+            body: {
+                d: 'M 0 0 L 120 0 L 120 60 Q 90 80 60 60 T 0 60 Z',
+                fill: '#ffffff',
+                stroke: '#000000',
+                strokeWidth: 2
+            },
+            title: {
+                text: 'Documento',
+                fill: '#000000',
+                fontSize: 14,
+                fontWeight: 'bold',
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '35%'
+            },
+            description: {
+                text: 'Descrição...',
+                fill: '#555555',
+                fontSize: 12,
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '65%'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'title'
+        }, {
+            tagName: 'text',
+            selector: 'description'
+        }]
+    });
+
+
     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     const paper = new joint.dia.Paper({
         el: paperContainer,
@@ -29,19 +73,25 @@ document.addEventListener('DOMContentLoaded', function () {
         placeholder.classList.remove('placeholder-active');
         paperContainer.style.display = 'block';
         
-
         fetch(`/api_get_fluxograma.php?id=${fluxogramaId}`)
             .then(response => {
-                if (!response.ok) throw new Error('Falha ao carregar o fluxograma.');
-                return response.json();
+                return response.json().then(data => ({ 
+                    ok: response.ok, 
+                    status: response.status,
+                    data 
+                }));
             })
-            .then(data => {
+            .then(({ ok, status, data }) => {
+                if (!ok) {
+                    throw new Error(data.mensagem || `Erro ${status} do servidor.`);
+                }
                 graph.fromJSON(data);
                 paper.unfreeze();
             })
             .catch(error => {
-                console.error('Erro:', error);
-                alert('Ocorreu um erro ao carregar o fluxograma.');
+                console.error('Erro ao carregar preview:', error);
+                alert(`Ocorreu um erro ao carregar o preview: ${error.message}`);
+                
                 placeholder.classList.add('placeholder-active');
                 paperContainer.style.display = 'none';
             });
