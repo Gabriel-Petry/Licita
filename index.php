@@ -31,7 +31,9 @@ $routes = [
     '/salvar_tema' => 'salvar_tema.php',
     '/fluxograma/editor' => 'fluxograma.php',
     '/salvar-fluxograma' => 'salvar_fluxograma.php',
-    '/fluxogramas' => 'fluxogramas_listar.php'
+    '/fluxogramas' => 'fluxogramas_listar.php',
+    '/menu' => 'sem_permissao.php'
+    
 ];
 
 if (array_key_exists($route, $routes)) {
