@@ -23,6 +23,7 @@ $params = [];
 $titulo = "Relatório";
 $colunas = [];
 $filtros_where = [];
+$total_geral = 0;
 
 $alias_tabela_principal = 'l';
 if (strpos($tipo_relatorio, 'pca_') === 0 || $tipo_relatorio === 'contratos' || $tipo_relatorio === 'atas') {
@@ -81,8 +82,8 @@ switch ($tipo_relatorio) {
         break;
     case 'pca_itens':
         $titulo = "Relatório Consolidado de Itens por Tipo PCA " . ($pca_id > 0 ? $pdo->query("SELECT ano_vigencia FROM plano_contratacoes_anual WHERE id=$pca_id")->fetchColumn() : '');
-        $colunas = ['Tipo de Objeto', 'Item', 'Quantidade Total', 'Unidade'];
-        $sql = "SELECT d.tipo_objeto, di.descricao_item, SUM(di.quantidade) as quantidade, di.unidade_medida FROM demanda_itens di JOIN demandas d ON di.demanda_id = d.id WHERE d.pca_id = :pca_id GROUP BY d.tipo_objeto, di.descricao_item, di.unidade_medida ORDER BY d.tipo_objeto, di.descricao_item ASC";
+        $colunas = ['Tipo de Objeto', 'Item', 'Quantidade Total', 'Unidade', 'Valor Unitário', 'Valor Total'];
+        $sql = "SELECT d.tipo_objeto, di.descricao_item, SUM(di.quantidade) as quantidade, di.unidade_medida, di.valor_unitario_estimado, SUM(di.quantidade * di.valor_unitario_estimado) AS valor_total FROM demanda_itens di JOIN demandas d ON di.demanda_id = d.id WHERE d.pca_id = :pca_id GROUP BY d.tipo_objeto, di.descricao_item, di.unidade_medida, di.valor_unitario_estimado ORDER BY d.tipo_objeto, di.descricao_item ASC";
         $params[':pca_id'] = $pca_id;
         break;
 }
@@ -105,6 +106,12 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+if ($tipo_relatorio === 'pca_itens') {
+    foreach ($dados as $linha) {
+        $total_geral += $linha['valor_total'];
+    }
+}
+
 if ($formato === 'excel') {
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
@@ -120,11 +127,22 @@ if ($formato === 'excel') {
     $linhaNumero = 2;
     foreach ($dados as $linha) {
         $colunaLetra = 'A';
-        foreach ($linha as $valor) {
+        foreach ($linha as $key => $valor) {
             $sheet->setCellValue($colunaLetra . $linhaNumero, $valor);
+             if (strpos($key, 'valor') !== false && is_numeric($valor)) {
+                $sheet->getStyle($colunaLetra . $linhaNumero)->getNumberFormat()->setFormatCode('R$ #,##0.00');
+            }
             $colunaLetra++;
         }
         $linhaNumero++;
+    }
+
+    if ($tipo_relatorio === 'pca_itens') {
+        $sheet->setCellValue('E' . $linhaNumero, 'TOTAL GERAL:');
+        $sheet->getStyle('E' . $linhaNumero)->getFont()->setBold(true);
+        $sheet->setCellValue('F' . $linhaNumero, $total_geral);
+        $sheet->getStyle('F' . $linhaNumero)->getFont()->setBold(true);
+        $sheet->getStyle('F' . $linhaNumero)->getNumberFormat()->setFormatCode('R$ #,##0.00');
     }
 
     $colunaLetra--;
@@ -181,6 +199,7 @@ if ($formato === 'excel') {
         $maxLines = 0;
         $colIndexForCalc = 0;
         foreach($linha as $key => $valor) {
+            $valor = $valor ?? '';
             if (strpos($key, 'valor') !== false && is_numeric($valor)) {
                 $valor = 'R$ ' . number_format((float)$valor, 2, ',', '.');
             } elseif (is_string($valor) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor)) {
@@ -197,6 +216,7 @@ if ($formato === 'excel') {
 
         $colIndexForDraw = 0;
         foreach ($linha as $key => $valor) {
+            $valor = $valor ?? '';
             if (strpos($key, 'valor') !== false && is_numeric($valor)) {
                 $valor = 'R$ ' . number_format((float)$valor, 2, ',', '.');
             } elseif (is_string($valor) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor)) {
@@ -208,6 +228,13 @@ if ($formato === 'excel') {
             $pdf->MultiCell($w[$colIndexForDraw], $rowHeight, $valor, 1, 'L', 1, $nextPos, '', '', true, 0, false, true, $rowHeight, 'M');
             $colIndexForDraw++;
         }
+    }
+
+    if ($tipo_relatorio === 'pca_itens') {
+        $pdf->SetFont('helvetica', 'B', 9);
+        $total_width = $w[0] + $w[1] + $w[2] + $w[3];
+        $pdf->Cell($total_width, 7, 'TOTAL GERAL:', 1, 0, 'R', 1);
+        $pdf->Cell($w[5], 7, 'R$ ' . number_format($total_geral, 2, ',', '.'), 1, 1, 'L', 1);
     }
     
     $pdf->Output('relatorio.pdf', 'I');
