@@ -7,7 +7,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
     if (login($email, $senha)) {
-        header('Location: /dashboard');
+        if (tem_permissao('dashboard.ver')) {
+            header('Location: /dashboard');
+        } else {
+            header('Location: /menu');
+        }
         exit;
     } else {
         $error = 'E-mail ou senha inválidos.';

@@ -29,13 +29,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("INSERT INTO plano_contratacoes_anual (ano_vigencia) VALUES (:ano)");
             $stmt->execute([':ano' => $ano]);
             $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'PCA para o ano de ' . $ano . ' criado com sucesso!'];
+
         } elseif ($action === 'toggle_status') {
             $id = $_POST['id'] ?? 0;
             $stmt = $pdo->prepare("UPDATE plano_contratacoes_anual SET status = IF(status='Aberto', 'Fechado', 'Aberto') WHERE id = :id");
             $stmt->execute([':id' => $id]);
             $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Status do PCA alterado com sucesso!'];
+
+        } elseif ($action === 'delete') {
+            $id = (int)($_POST['id'] ?? 0);
+            if ($id > 0) {
+                $pdo->beginTransaction();
+                // 1. Encontrar todas as demandas associadas ao PCA
+                $stmt_demandas = $pdo->prepare("SELECT id FROM demandas WHERE pca_id = ?");
+                $stmt_demandas->execute([$id]);
+                $demandas_ids = $stmt_demandas->fetchAll(PDO::FETCH_COLUMN);
+
+                if (count($demandas_ids) > 0) {
+                    // 2. Apagar os itens de todas as demandas encontradas
+                    $in_clause = implode(',', array_fill(0, count($demandas_ids), '?'));
+                    $stmt_delete_itens = $pdo->prepare("DELETE FROM demanda_itens WHERE demanda_id IN ($in_clause)");
+                    $stmt_delete_itens->execute($demandas_ids);
+
+                    // 3. Apagar as demandas
+                    $stmt_delete_demandas = $pdo->prepare("DELETE FROM demandas WHERE pca_id = ?");
+                    $stmt_delete_demandas->execute([$id]);
+                }
+
+                // 4. Apagar o PCA
+                $stmt_delete_pca = $pdo->prepare("DELETE FROM plano_contratacoes_anual WHERE id = ?");
+                $stmt_delete_pca->execute([$id]);
+                
+                $pdo->commit();
+                $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'PCA e todas as suas demandas foram excluídos com sucesso!'];
+            } else {
+                throw new Exception('ID do PCA inválido.');
+            }
         }
     } catch (Exception $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
         $_SESSION['flash_message'] = ['type' => 'error', 'text' => $e->getMessage()];
     }
 
@@ -62,15 +94,11 @@ render_header('Plano de Contratações Anual (PCA) - LicitAções');
             <thead>
                 <tr>
                     <th>Ano de Vigência</th>
-
                     <th>Status</th>
-
                     <th>Data de Criação</th>
-
                     <th>Ações</th>
                 </tr>
             </thead>
-
             <tbody>
                 <?php if (count($planos) > 0): ?>
                     <?php foreach ($planos as $plano): ?>
@@ -86,13 +114,20 @@ render_header('Plano de Contratações Anual (PCA) - LicitAções');
                                 <div class="pca-actions-container">
                                     <a href="/demandas?pca_id=<?= $plano['id'] ?>" class="btn btn-sm">Ver Demandas</a>
                                     <?php if (tem_permissao('pca.gerenciar')): ?>
-                                        <form action="/pca" method="post">
+                                        <form action="/pca" method="post" style="display: inline;">
                                             <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
                                             <input type="hidden" name="action" value="toggle_status">
                                             <input type="hidden" name="id" value="<?= $plano['id'] ?>">
                                             <button type="submit" class="btn btn-sm">
                                                 <?= $plano['status'] === 'Aberto' ? 'Fechar' : 'Abrir' ?>
                                             </button>
+                                        </form>
+                                        
+                                        <form action="/pca" method="post" class="form-confirm-submit" data-confirm-message="Tem a certeza que deseja excluir este PCA? TODAS as demandas associadas a ele serão apagadas permanentemente. Esta ação não pode ser desfeita." style="display: inline;">
+                                            <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="<?= $plano['id'] ?>">
+                                            <button type="submit" class="btn btn-sm warn">Excluir</button>
                                         </form>
                                     <?php endif; ?>
                                 </div>
@@ -111,11 +146,9 @@ render_header('Plano de Contratações Anual (PCA) - LicitAções');
 
 <?php if (tem_permissao('pca.gerenciar')): ?>
     <div id="novo-pca-popup" class="popup-overlay">
-
         <div class="popup-card card popup-small">
             <a href="#" class="popup-close">&times;</a>
             <h2>Criar Novo PCA</h2>
-
             <form method="post">
                 <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
                 <input type="hidden" name="action" value="create">
@@ -123,11 +156,8 @@ render_header('Plano de Contratações Anual (PCA) - LicitAções');
                 <input type="number" name="ano_vigencia" min="<?= date('Y') ?>" value="<?= date('Y') + 1 ?>" required>
                 <button class="btn good" type="submit" style="width: 100%; margin-top: 1rem;">Criar Plano Anual</button>
             </form>
-
         </div>
-
     </div>
-
 <?php endif; ?>
 
 <?php

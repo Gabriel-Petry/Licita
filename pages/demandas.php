@@ -33,12 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $data_previsao = (empty($_POST['mes_previsao']) || empty($_POST['ano_previsao'])) ? null : $_POST['ano_previsao'] . '-' . $_POST['mes_previsao'] . '-01';
 
-            $sql_demanda = "INSERT INTO demandas (pca_id, orgao_id, usuario_id, descricao_necessidade, justificativa_contratacao, beneficios_esperados, objeto_contratacao, tipo_objeto, data_previsao_licitacao, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Em Análise')";
+            $sql_demanda = "INSERT INTO demandas (pca_id, orgao_id, usuario_id, descricao_necessidade, justificativa_contratacao, beneficios_esperados, objeto_contratacao, tipo_objeto, data_previsao_licitacao, grau_prioridade, justificativa_prioridade, vinculacao_dependencia, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Em Análise')";
             $stmt_demanda = $pdo->prepare($sql_demanda);
             $stmt_demanda->execute([
                 $pca_id, $user['orgao_id'], $user['id'],
                 $_POST['descricao_necessidade'], $_POST['justificativa_contratacao'], $_POST['beneficios_esperados'],
-                $_POST['objeto_contratacao'], $_POST['tipo_objeto'], $data_previsao
+                $_POST['objeto_contratacao'], $_POST['tipo_objeto'], $data_previsao,
+                $_POST['grau_prioridade'], $_POST['justificativa_prioridade'], $_POST['vinculacao_dependencia']
             ]);
             $new_demanda_id = $pdo->lastInsertId();
             
@@ -70,6 +71,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['flash_message'] = ['type' => 'success', 'text' => "Demanda {$novo_status} com sucesso!"];
             } else {
                 throw new Exception('Ação inválida.');
+            }
+        } elseif ($action === 'delete_demanda') {
+            // A permissão para excluir uma demanda será a mesma de gerir o PCA (administrador)
+            if (!tem_permissao('pca.gerenciar')) throw new Exception('Acesso negado.');
+
+            if ($demanda_id > 0) {
+                $pdo->beginTransaction();
+                // 1. Apagar os itens da demanda
+                $stmt_delete_itens = $pdo->prepare("DELETE FROM demanda_itens WHERE demanda_id = ?");
+                $stmt_delete_itens->execute([$demanda_id]);
+                // 2. Apagar a demanda
+                $stmt_delete_demanda = $pdo->prepare("DELETE FROM demandas WHERE id = ?");
+                $stmt_delete_demanda->execute([$demanda_id]);
+                $pdo->commit();
+                $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Demanda excluída com sucesso!'];
+            } else {
+                throw new Exception('ID da demanda inválido.');
             }
         }
 
@@ -146,7 +164,7 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
     <div class="popup-card card">
         <a href="#" class="popup-close">&times;</a>
         <h2>Nova Demanda (DFD) para o PCA <?= htmlspecialchars($plano['ano_vigencia']) ?></h2>
-        <form method="post" class="form-popup" id="form-nova-demanda">
+        <form method="post" class="form-popup" id="form-nova-demanda" action="/demandas?pca_id=<?= $pca_id ?>">
             <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>"><input type="hidden" name="action" value="create_demanda">
             <div class="popup-content">
                 <div class="grid grid-3">
@@ -158,10 +176,30 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
                         <input type="hidden" name="ano_previsao" value="<?= htmlspecialchars($plano['ano_vigencia']) ?>">
                     </div>
                 </div>
-                <div><label>Descrição da Necessidade</label><textarea name="descricao_necessidade" rows="3" required></textarea></div>
+
+                <div class="grid grid-2" style="margin-top: 1rem;">
+                    <div>
+                        <label>Grau de Prioridade</label>
+                        <select name="grau_prioridade" required>
+                            <option value="Baixa">Baixa</option>
+                            <option value="Média">Média</option>
+                            <option value="Alta">Alta</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Justificativa da Prioridade</label>
+                        <textarea name="justificativa_prioridade" rows="2" required></textarea>
+                    </div>
+                </div>
+                <div><label>Descrição Detalhada do Objeto</label><textarea name="descricao_necessidade" rows="3" required></textarea></div>
                 <div class="grid grid-2">
                     <div><label>Justificativa da Necessidade</label><textarea name="justificativa_contratacao" rows="3" required></textarea></div>
                     <div><label>Benefícios Esperados</label><textarea name="beneficios_esperados" rows="3" required></textarea></div>
+                </div>
+
+                <div>
+                    <label>Indicação de vinculação/dependência com outra contratação (Opcional)</label>
+                    <textarea name="vinculacao_dependencia" rows="2"></textarea>
                 </div>
                 <hr style="margin: 2rem 0;">
                 <h4>Itens da Demanda</h4>
@@ -190,6 +228,12 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
                 <div><strong>Data da Solicitação:</strong><br><?= htmlspecialchars(date('d/m/Y', strtotime($demanda['data_criacao']))) ?></div>
             </div>
             <hr>
+            
+            <p><strong>Grau de Prioridade:</strong><br><?= htmlspecialchars($demanda['grau_prioridade']) ?></p>
+            <p><strong>Justificativa da Prioridade:</strong><br><?= nl2br(htmlspecialchars($demanda['justificativa_prioridade'])) ?></p>
+            <p><strong>Vinculação/Dependência:</strong><br><?= nl2br(htmlspecialchars($demanda['vinculacao_dependencia'] ?? 'Nenhuma')) ?></p>
+            <hr>
+            
             <p><strong>Descrição da Necessidade:</strong><br><?= nl2br(htmlspecialchars($demanda['descricao_necessidade'])) ?></p>
             <p><strong>Justificativa:</strong><br><?= nl2br(htmlspecialchars($demanda['justificativa_contratacao'])) ?></p>
             <p><strong>Benefícios Esperados:</strong><br><?= nl2br(htmlspecialchars($demanda['beneficios_esperados'])) ?></p>
@@ -220,25 +264,38 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
                 </table>
             </div>
         </div>
-        <?php
-        if (tem_permissao('demandas.aprovar') && $demanda['status'] === 'Em Análise'): ?>
+        
         <div class="form-actions">
-            <form method="post" class="form-confirm-submit" data-confirm-message="Tem certeza que deseja REPROVAR esta demanda?">
-                <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
-                <input type="hidden" name="action" value="change_status">
-                <input type="hidden" name="demanda_id" value="<?= $demanda['id'] ?>">
-                <input type="hidden" name="novo_status" value="Reprovada">
-                <button type="submit" class="btn warn">Reprovar Demanda</button>
-            </form>
-            <form method="post" class="form-confirm-submit" data-confirm-message="Tem certeza que deseja APROVAR esta demanda?">
-                <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
-                <input type="hidden" name="action" value="change_status">
-                <input type="hidden" name="demanda_id" value="<?= $demanda['id'] ?>">
-                <input type="hidden" name="novo_status" value="Aprovada">
-                <button type="submit" class="btn good">Aprovar Demanda</button>
-            </form>
+            <?php if (tem_permissao('demandas.aprovar') && $demanda['status'] === 'Em Análise'): ?>
+                <form method="post" class="form-confirm-submit" action="/demandas?pca_id=<?= $pca_id ?>">
+                    <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
+                    <input type="hidden" name="action" value="change_status">
+                    <input type="hidden" name="demanda_id" value="<?= $demanda['id'] ?>">
+                    <input type="hidden" name="novo_status" value="Reprovada">
+                    <button type="submit" class="btn warn">Reprovar Demanda</button>
+                </form>
+                <form method="post" class="form-confirm-submit" action="/demandas?pca_id=<?= $pca_id ?>">
+                    <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
+                    <input type="hidden" name="action" value="change_status">
+                    <input type="hidden" name="demanda_id" value="<?= $demanda['id'] ?>">
+                    <input type="hidden" name="novo_status" value="Aprovada">
+                    <button type="submit" class="btn good">Aprovar Demanda</button>
+                </form>
+            <?php endif; ?>
+
+            <?php if ($demanda['status'] === 'Aprovada'): ?>
+                <a href="/pages/gerar_dfd.php?demanda_id=<?= $demanda['id'] ?>" target="_blank" class="btn primary">Emitir DFD (PDF)</a>
+            <?php endif; ?>
+            
+            <?php if (tem_permissao('pca.gerenciar')): ?>
+                 <form method="post" class="form-confirm-submit" data-confirm-message="Tem a certeza que deseja excluir esta demanda? Esta ação não pode ser desfeita." action="/demandas?pca_id=<?= $pca_id ?>">
+                    <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
+                    <input type="hidden" name="action" value="delete_demanda">
+                    <input type="hidden" name="demanda_id" value="<?= $demanda['id'] ?>">
+                    <button type="submit" class="btn warn">Excluir Demanda</button>
+                </form>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
     </div>
 </div>
 <?php endforeach; ?>
