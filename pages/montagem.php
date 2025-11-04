@@ -44,12 +44,7 @@ $data_hoje = date('d/m/Y');
 // Assumindo que seu layout.php use essas variáveis
 $page_styles = ['/css/montagem.css']; 
 $page_scripts = [
-    // Scripts do DS GOV.BR (provavelmente já carregados no seu layout.php)
-    // 'https://cdngovbr-ds.estaleiro.serpro.gov.br/design-system/fonts/rawline/css/rawline.css',
-    // 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css',
-    // 'https://cdngovbr-ds.estaleiro.serpro.gov.br/design-system/js/core.min.js',
-    
-    // Nosso novo arquivo JS para este editor
+    'https://cdn.jsdelivr.net/npm/@govbr-ds/core@3.6.2/dist/core.min.js',
     '/js/montagem.js' 
 ];
 
@@ -669,7 +664,8 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
 
     </div>
 
-</div> <div class="editor-preview">
+
+	<div class="editor-preview">
         <div class="right" id="right">
             
             <div style='background-color:#ffffff; padding-top:100px;margin-right: 2cm; margin-left: 2cm;' id="topoPagina">
@@ -799,9 +795,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
 
                     <p class=""><span class="numeratermo"></span>.<span class="layer1numeratermo"></span>. O prazo de vigência da contratação é o estabelecido no Termo de Referência.</p>
                     <p class="beforesub"><span class="numeratermo"></span>.<span class="layer1numeratermo"></span>. Na assinatura do contrato... será exigido o... Cadin...</p>
-                    </div>
 
-                </div>
                 <p>&nbsp;</p>
                 <p><b><span class="numeragerais"></span>. DAS DISPOSIÇÕES GERAIS</b></p>
                 <p><span class="numeragerais"></span>.<span class="layer1numeragerais"></span>. O Edital e seus anexos estão disponíveis... em <mark><span id="gerais1">................</span></mark></p>
@@ -812,7 +806,11 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="centralizado" id="nome_preg"> <mark><?php echo $pregoeiro_nome; ?></mark> </p>
                 <p class="centralizado" id="cargo_preg"> <mark>Pregoeiro/Agente (Ajustar no JS)</mark> </p>
 
-            </div> </div> </div>
+			</div>
+        </div> 
+    </div>
+
+</div> 
 <?php
 // 7. RENDERIZA O FOOTER (que irá incluir os scripts)
 render_footer();
