@@ -1,0 +1,122 @@
+/* /css/montagem.css */
+
+body {
+    /* Garante que o layout ocupe a tela toda */
+    overflow-x: hidden;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    align-items: flex-start;
+}
+
+.editor-sidebar {
+    flex: 0 0 450px; /* Largura da barra lateral */
+    position: sticky;
+    top: 1.5rem; /* Fixa a barra ao rolar a página */
+}
+
+.editor-preview {
+    flex: 1; /* Ocupa o resto do espaço */
+}
+
+/* Estilos do preview (coluna da direita) */
+#right {
+    background-color: #ffffff;
+    padding: 2cm; /* Simula margens de página */
+    margin: 0;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#right mark {
+    background-color: #e8f0fe; /* Cor de fundo para os campos editáveis */
+    padding: 2px 0;
+}
+
+/* Estilos básicos para o accordion (copiado do seu primeiro arquivo) */
+.card-content .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.card-content .col-lg-6 {
+    flex: 1;
+    min-width: 150px;
+}
+.centralizado {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+.tabela-proposta-builder {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1rem;
+    background-color: #f9f9f9;
+}
+
+.tabela-proposta-builder .row {
+    align-items: flex-end; /* Alinha botões e inputs */
+}
+
+.tabela-proposta-builder-remover {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px dashed #ccc;
+}
+
+/* Tabela de preview no painel da direita */
+.tabela-preview {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 15cm; /* Simula largura no documento */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+.tabela-preview th,
+.tabela-preview td {
+    border: 1px solid #333; /* Borda mais escura para o doc */
+    padding: 6px;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11pt; /* Um pouco menor para tabelas */
+    text-align: left;
+}
+.tabela-preview th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.tabela-intervalo-builder {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1rem;
+    background-color: #f9f9f9;
+}
+.tabela-intervalo-builder .row {
+    align-items: center; /* Alinha labels e inputs */
+}
+.tabela-intervalo-builder .br-input {
+    margin-bottom: 0; /* Remove margem extra */
+}
+
+.tabela-dissidio-builder {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1rem;
+    background-color: #f9f9f9;
+}
+.tabela-dissidio-builder .row {
+    align-items: flex-end; /* Alinha botões e inputs */
+}
+.tabela-dissidio-builder-remover {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px dashed #ccc;
+}
