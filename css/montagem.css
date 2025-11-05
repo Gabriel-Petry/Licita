@@ -1,7 +1,4 @@
-/* /css/montagem.css */
-
 body {
-    /* Garante que o layout ocupe a tela toda */
     overflow-x: hidden;
 }
 
@@ -14,30 +11,28 @@ body {
 }
 
 .editor-sidebar {
-    flex: 0 0 450px; /* Largura da barra lateral */
+    flex: 0 0 450px;
     position: sticky;
-    top: 1.5rem; /* Fixa a barra ao rolar a página */
+    top: 1.5rem;
 }
 
 .editor-preview {
-    flex: 1; /* Ocupa o resto do espaço */
+    flex: 1; 
 }
 
-/* Estilos do preview (coluna da direita) */
 #right {
     background-color: #ffffff;
-    padding: 2cm; /* Simula margens de página */
+    padding: 2cm;
     margin: 0;
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
 #right mark {
-    background-color: #e8f0fe; /* Cor de fundo para os campos editáveis */
+    background-color: #e8f0fe;
     padding: 2px 0;
 }
 
-/* Estilos básicos para o accordion (copiado do seu primeiro arquivo) */
 .card-content .row {
     display: flex;
     flex-wrap: wrap;
@@ -63,7 +58,7 @@ body {
 }
 
 .tabela-proposta-builder .row {
-    align-items: flex-end; /* Alinha botões e inputs */
+    align-items: flex-end; 
 }
 
 .tabela-proposta-builder-remover {
@@ -72,20 +67,19 @@ body {
     border-top: 1px dashed #ccc;
 }
 
-/* Tabela de preview no painel da direita */
 .tabela-preview {
     border-collapse: collapse;
     width: 100%;
-    max-width: 15cm; /* Simula largura no documento */
+    max-width: 15cm;
     margin-top: 1rem;
     margin-bottom: 1rem;
 }
 .tabela-preview th,
 .tabela-preview td {
-    border: 1px solid #333; /* Borda mais escura para o doc */
+    border: 1px solid #333;
     padding: 6px;
     font-family: "Times New Roman", Times, serif;
-    font-size: 11pt; /* Um pouco menor para tabelas */
+    font-size: 11pt;
     text-align: left;
 }
 .tabela-preview th {
@@ -100,10 +94,10 @@ body {
     background-color: #f9f9f9;
 }
 .tabela-intervalo-builder .row {
-    align-items: center; /* Alinha labels e inputs */
+    align-items: center;
 }
 .tabela-intervalo-builder .br-input {
-    margin-bottom: 0; /* Remove margem extra */
+    margin-bottom: 0;
 }
 
 .tabela-dissidio-builder {
@@ -113,7 +107,7 @@ body {
     background-color: #f9f9f9;
 }
 .tabela-dissidio-builder .row {
-    align-items: flex-end; /* Alinha botões e inputs */
+    align-items: flex-end;
 }
 .tabela-dissidio-builder-remover {
     padding-top: 1rem;
