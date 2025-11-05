@@ -50,14 +50,18 @@ function display_flash_message() {
 }
 
 function render_header(string $title = "LicitAções", array $options = []) {
-$csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self';";
+	$csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; font-src 'self' https://cdnjs.cloudflare.com data:; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self';";
     header("Content-Security-Policy: " . $csp);
     $user = current_user();
     $bodyClass = $options['bodyClass'] ?? '';
-    $userTheme = $user['tema'] ?? 'dark';     
+    $userTheme = $user['tema'] ?? 'light';     
     $showHeader = $options['showHeader'] ?? true;
+    
     global $page_scripts;
     $page_scripts = $options['scripts'] ?? [];
+
+    global $page_styles;
+    $page_styles = $options['styles'] ?? [];
 
     $cache_bust = '?v=' . time();
     ?>
@@ -76,8 +80,15 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
         <link rel="stylesheet" href="/css/pages.css<?= $cache_bust ?>">
         <link rel="stylesheet" href="/css/searchable-select.css<?= $cache_bust ?>">
         <link rel="stylesheet" href="/css/theme.css<?= $cache_bust ?>">
+        <link rel="stylesheet" href="/css/fluxograma.css">
+    	<link rel="stylesheet" href="/css/montagem.css">
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.1/joint.min.css" />
-    	<link rel="stylesheet" href="/css/fluxograma.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+		<?php foreach ($page_styles as $style): ?>
+            <link rel="stylesheet" href="<?= htmlspecialchars($style) . $cache_bust ?>">
+        <?php endforeach; ?>
+        
     </head>
     <body class="<?= htmlspecialchars($bodyClass) ?>" data-theme="<?= htmlspecialchars($userTheme) ?>">
         <?php if ($showHeader): ?>
@@ -91,7 +102,7 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                             <a href="/dashboard">Dashboard</a>
                         <?php endif; ?>
                         
-                        <?php // O Resumo pode usar a mesma permissão de licitações, por exemplo.
+                        <?php
                         if (tem_permissao('licitacoes.ver')): ?>
                             <a href="/resumo">Resumo</a>
                         <?php endif; ?>
@@ -100,9 +111,9 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                             <a href="/pca">Plano Anual (PCA)</a>
                         <?php endif; ?>
                     
-                        <?php if (tem_permissao('fluxogramas.ver')): ?><a href="/fluxogramas">Fornecedores</a><?php endif; ?>
+                        <?php if (tem_permissao('fluxogramas.ver')): ?><a href="/fluxogramas">Fluxogramas</a><?php endif; ?>
 
-                        <?php // Dropdown de Cadastros só aparece se o usuário tiver permissão para ver PELO MENOS UM item
+                        <?php
                         if (
                             tem_permissao('licitacoes.ver') || tem_permissao('diretas.ver') || tem_permissao('concluidos.ver') ||
                             tem_permissao('contratos.ver') || tem_permissao('atas.ver') || tem_permissao('parametros.gerenciar') ||
@@ -118,12 +129,13 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                                 <?php if (tem_permissao('atas.ver')): ?><a href="/atas">Atas</a><?php endif; ?>
                                 <?php if (tem_permissao('parametros.gerenciar')): ?><a href="/cadastros">Parâmetros</a><?php endif; ?>
                                 <?php if (tem_permissao('fornecedores.ver')): ?><a href="/fornecedores">Fornecedores</a><?php endif; ?>
+                                <?php if (tem_permissao('licitacoes.ver')): ?><a href="/gerar_edital">Gerador Edital</a><?php endif; ?>
                             </div>
                         </div>
                         <?php endif; ?>
 
                         <div class="nav-dropdown">
-                            <button class="linklike"><?= htmlspecialchars($user["nome"]) ?> &#9662;</button>
+                            <button class="linklike"><?= htmlspecialchars(explode(' ', $user["nome"])[0]) ?> &#9662;</button>
                             <div class="nav-dropdown-content">
                                 <a href="#alterar-senha-popup">Alterar Senha</a>
                                 <a href="#themes-popup">Alterar Tema</a>
@@ -143,7 +155,7 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                         <?php if (tem_permissao('dashboard.ver')): ?><a href="/dashboard">Dashboard</a><?php endif; ?>
                         <?php if (tem_permissao('licitacoes.ver')): ?><a href="/resumo">Resumo</a><?php endif; ?>
                         <?php if (tem_permissao('pca.gerenciar') || tem_permissao('demandas.criar')): ?><a href="/pca">Plano Anual (PCA)</a><?php endif; ?>
-                        <?php if (tem_permissao('fluxogramas.ver')): ?><a href="/fluxogramas">Fornecedores</a><?php endif; ?>
+                        <?php if (tem_permissao('fluxogramas.ver')): ?><a href="/fluxogramas">Fluxogramas</a><?php endif; ?>
                         
                         <span class="nav-mobile-divider">Cadastros</span>
                         <?php if (tem_permissao('licitacoes.ver')): ?><a href="/licitacoes">Licitações</a><?php endif; ?>
@@ -153,9 +165,9 @@ $csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://c
                         <?php if (tem_permissao('atas.ver')): ?><a href="/atas">Atas</a><?php endif; ?>
                         <?php if (tem_permissao('parametros.gerenciar')): ?><a href="/cadastros">Parâmetros</a><?php endif; ?>
                         <?php if (tem_permissao('fornecedores.ver')): ?><a href="/fornecedores">Fornecedores</a><?php endif; ?>
-                    	
+                    	<?php if (tem_permissao('licitacoes.ver')): ?><a href="/gerar_edital">Gerador Edital</a><?php endif; ?>
                         
-                        <span class="nav-mobile-divider"><?= htmlspecialchars($user["nome"]) ?></span>
+                        <span class="nav-mobile-divider"><?= htmlspecialchars(explode(' ', $user["nome"])[0]) ?></span>
                         <a href="#alterar-senha-popup">Alterar Senha</a>
                         <a href="#themes-popup">Alterar Tema</a>
                         <?php if (tem_permissao('usuarios.gerenciar')): ?><a href="/cadastrar_usuario">Gerenciar Usuários</a><?php endif; ?>
@@ -248,3 +260,4 @@ function render_footer() {
     </html>
     <?php
 }
+?>
