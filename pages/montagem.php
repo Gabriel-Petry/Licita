@@ -35,7 +35,7 @@ $criterio_texto = ($cj_val == '1') ? "Menor Preço" : "Maior Desconto";
 $data_hoje = date('d/m/Y');
 
 $page_styles = [ '/css/montagem.css' ];
-$page_scripts = [ '/js/montagem.js' ];
+$page_scripts = [ '/js/montagem.js?v=' . time() ];
 
 render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $page_styles]);
 ?>
@@ -46,77 +46,153 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
      data-cj="<?php echo $cj_val; ?>"
 ></div>
 
-<style>
-    .editor-sidebar .card-content { padding: 0; max-height: 65vh; overflow-y: auto; }
-    .sidebar-nav { list-style: none; padding: 0; margin: 0; }
-    .sidebar-nav li a { display: block; padding: 10px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; font-size: 0.9em; }
-    .sidebar-nav li a:hover { background-color: #f5f5f5; }
-    
-    .editor-preview { height: calc(100vh - 100px); overflow-y: auto; padding: 1rem; box-sizing: border-box; background: #e9ecef; }
-    .document-paper { background-color: #ffffff; padding: 2cm; margin: 0 auto; font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.5; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 21cm; min-height: 29.7cm; }
-    
-    .document-paper p { margin-bottom: 10px; text-align: justify; }
-    .document-paper table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-    .document-paper th, .document-paper td { border: 1px solid #000; padding: 5px; font-size: 11pt; }
-    .document-paper .center { text-align: center; }
-    .document-paper .bold { font-weight: bold; }
-    
-    .nr-auto { font-weight: bold; margin-right: 5px; }
-</style>
-
 <div class="editor-container">
 
-    <div class="editor-sidebar">
-        <div class="card">
-            <div class="card-header">
-                <h3>Navegação</h3>
-            </div>
-            <div class="card-content">
-                <ul class="sidebar-nav">
-                    <li><a href="#edital-cabecalho">CABEÇALHO / OBJETO</a></li>
-                    <li><a href="#edital-detalhamento">1. DETALHAMENTO DO OBJETO</a></li>
-                    
-                    <li><a href="#edital-modo-disputa">5. MODO DE DISPUTA</a></li>
-                    
-                    <li><a href="#edital-propostas-lances-habilitacao">7. PROPOSTAS, LANCES E HABILITAÇÃO</a></li>
-                    
-					<li><a href="#edital-propostas-lances-habilitacao">7. PROPOSTAS E HABILITAÇÃO</a></li>
-                    <li><a href="#hab-juridica" style="padding-left: 30px; font-size: 0.85em; color: #666;">↳ Habilitação Jurídica</a></li>
-                    <li><a href="#hab-fiscal" style="padding-left: 30px; font-size: 0.85em; color: #666;">↳ Habilitação Fiscal</a></li>
-                    <li><a href="#hab-economica" style="padding-left: 30px; font-size: 0.85em; color: #666;">↳ Habilitação Econômica</a></li>
-                    <li><a href="#hab-tecnica" style="padding-left: 30px; font-size: 0.85em; color: #666;">↳ Habilitação Técnica</a></li>
-                    <li><a href="#hab-amostras" style="padding-left: 30px; font-size: 0.85em; color: #666;">↳ Amostras</a></li>
+<div class="editor-sidebar">
+    <div class="card">
+        <div class="card-header">
+            <h3>Navegação</h3>
+        </div>
+        <div class="card-content" style="padding: 0;">
+            <div class="nav-accordion">
+                
+				<div class="nav-group">
+                    <div class="nav-group-header">
+                        <span class="titulo-grupo">CABEÇALHO / OBJETO</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+                        <div class="br-input small mb-2">
+                            <label>Nº do Edital:</label>
+                            <input type="text" value="<?php echo $pregao_num; ?>" data-live-target="view-pregao">
+                        </div>
+                        <div class="br-input small mb-2">
+                            <label>Processo Adm.:</label>
+                            <input type="text" value="<?php echo $processo_num; ?>" data-live-target="view-processo">
+                        </div>
+                        <div class="br-input small mb-2">
+                            <label>Requisição:</label>
+                            <input type="text" value="<?php echo $requisicao_num; ?>" data-live-target="view-requisicao">
+                        </div>
+                        <div class="br-textarea small mb-2">
+                            <label>Objeto:</label>
+                            <textarea rows="4" data-live-target="view-objeto"><?php echo $objeto; ?></textarea>
+                        </div>
+                        <div class="br-input small mb-2">
+                            <label>Valor (R$):</label>
+                            <input type="text" value="<?php echo $valor_estimado; ?>" data-live-target="view-valor">
+                        </div>
+                        <div class="br-input small mb-2">
+                            <label>Pregoeiro(a):</label>
+                            <input type="text" value="<?php echo $pregoeiro_nome; ?>" data-live-target="view-pregoeiro">
+                        </div>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <a href="#edital-cabecalho" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                        </div>
+                    </div>
+                </div>
 
-                    <li><a href="#edital-dotacao">20. DOTAÇÃO ORÇAMENTÁRIA</a></li>
-                    
-                    <li><a href="#edital-infracoes-sancoes">22. INFRAÇÕES E SANÇÕES</a></li>
-                    <li><a href="#edital-disposicoes-gerais">23. DISPOSIÇÕES GERAIS</a></li>
-                </ul>
+<div class="nav-group">
+                    <div class="nav-group-header">
+                        <span class="titulo-grupo">1. DETALHAMENTO DO OBJETO</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+                        
+                        <label style="font-weight: bold; color: #1351b4; display: block; margin-bottom: 5px;">Importar Planilha:</label>
+                        <div class="br-input small mb-3" style="border: 1px dashed #1351b4; padding: 10px; background: #f8faff; border-radius: 4px;">
+                            <input type="file" accept=".xlsx, .xls, .csv" onchange="importarItens(this)" style="border: none; padding: 0; width: 100%;">
+                            <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                                Aceita Excel/CSV (Cols: Item, Descrição, Unid, Qtd)
+                            </div>
+                        </div>
+
+                        <hr style="margin: 10px 0; border-color: #eee;">
+                        
+                        <label style="font-weight: bold; color: #555; display: block; margin-bottom: 10px;">Ou Adicionar Manualmente:</label>
+                        
+                        <div class="row" style="gap: 5px;">
+                            <div class="col" style="flex: 1;">
+                                <div class="br-input small">
+                                    <input type="text" id="add-item-nr" placeholder="Nº">
+                                </div>
+                            </div>
+                            <div class="col" style="flex: 1;">
+                                <div class="br-input small">
+                                    <input type="text" id="add-item-un" placeholder="Unid.">
+                                </div>
+                            </div>
+                            <div class="col" style="flex: 1;">
+                                <div class="br-input small">
+                                    <input type="text" id="add-item-qtd" placeholder="Qtd.">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="br-textarea small mt-2 mb-2">
+                            <textarea id="add-item-desc" rows="2" placeholder="Descrição do Item..."></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 5px;">
+                            <button type="button" class="br-button primary small" style="flex: 1;" onclick="adicionarItemTabela()">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                            <button type="button" class="br-button secondary small" onclick="limparTabela()">
+                                <i class="fas fa-trash"></i> Limpar
+                            </button>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 10px;">
+                            <a href="#edital-detalhamento" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="#edital-modo-disputa" class="nav-item">5. MODO DE DISPUTA</a>
+
+                <div class="nav-group">
+                    <div class="nav-group-header">
+                        <span class="titulo-grupo">7. PROPOSTAS E HABILITAÇÃO</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="nav-group-content">
+                        <a href="#edital-propostas-lances-habilitacao" class="sub-item">Visão Geral</a>
+                        <a href="#hab-juridica" class="sub-item">↳ Habilitação Jurídica</a>
+                        <a href="#hab-fiscal" class="sub-item">↳ Habilitação Fiscal</a>
+                        <a href="#hab-economica" class="sub-item">↳ Habilitação Econômica</a>
+                        <a href="#hab-tecnica" class="sub-item">↳ Habilitação Técnica</a>
+                        <a href="#hab-amostras" class="sub-item">↳ Amostras</a>
+                    </div>
+                </div>
+
+                <a href="#edital-dotacao" class="nav-item">20. DOTAÇÃO ORÇAMENTÁRIA</a>
+                <a href="#edital-infracoes-sancoes" class="nav-item">22. INFRAÇÕES E SANÇÕES</a>
+                <a href="#edital-disposicoes-gerais" class="nav-item">23. DISPOSIÇÕES GERAIS</a>
+                
             </div>
         </div>
-
-        <form id="pdf-form" method="POST" action="finalizar_pdf.php" target="_blank" style="margin-top: 1.5rem;">
-            <input type="hidden" name="edital_html" id="hidden_html_content">
-            <div class="card">
-                <div class="card-footer form-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
-                    <button class="br-button secondary" type="button" id="btn-salvar-html">Salvar HTML</button>
-                    <button class="br-button primary" type="submit" id="btn-gerar-pdf">Gerar PDF</button>
-                </div>
-            </div>
-        </form>
     </div>
+
+    <form id="pdf-form" method="POST" action="finalizar_pdf.php" target="_blank" style="margin-top: 1.5rem;">
+        <input type="hidden" name="edital_html" id="hidden_html_content">
+        <div class="card">
+            <div class="card-footer form-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button class="br-button secondary" type="button" id="btn-salvar-html">Salvar HTML</button>
+                <button class="br-button primary" type="submit" id="btn-gerar-pdf">Gerar PDF</button>
+            </div>
+        </div>
+    </form>
+</div>
 
     <div class="editor-preview" id="right">
         <div class="document-paper">
 
-            <div id="edital-cabecalho">
-                <p class="center bold">EDITAL DE <?php echo strtoupper($modalidade_texto); ?> N° <?php echo $pregao_num; ?></p>
-                <p class="center bold">PROCESSO DIGITAL N° <?php echo $processo_num; ?></p>
-                <p class="center bold">REQUISIÇÃO N° <?php echo $requisicao_num; ?></p>
+		<div id="edital-cabecalho">
+                <p class="center bold">EDITAL DE <?php echo strtoupper($modalidade_texto); ?> N° <span id="view-pregao"><?php echo $pregao_num; ?></span></p>
+                <p class="center bold">PROCESSO DIGITAL N° <span id="view-processo"><?php echo $processo_num; ?></span></p>
+                <p class="center bold">REQUISIÇÃO N° <span id="view-requisicao"><?php echo $requisicao_num; ?></span></p>
                 <br>
 
-                <p><b>OBJETO:</b> <?php echo $objeto; ?></p>
-                <p><b>VALOR TOTAL ESTIMADO:</b> R$ <?php echo $valor_estimado; ?></p>
+                <p><b>OBJETO:</b> <span id="view-objeto"><?php echo $objeto; ?></span></p>
+                <p><b>VALOR TOTAL ESTIMADO:</b> R$ <span id="view-valor"><?php echo $valor_estimado; ?></span></p>
                 
                 <p><b>LIMITE PARA RECEBIMENTO DAS PROPOSTAS:</b><br>
                 Às 00h00min do dia 00/00/0000 até as 00h00min do dia 00/00/0000</p>
@@ -126,7 +202,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 
                 <p><b>MODO DE DISPUTA:</b> Aberto</p>
                 <p><b>CRITÉRIO DE JULGAMENTO:</b> <?php echo $criterio_texto; ?></p>
-                <p><b>PREGOEIRA RESPONSÁVEL:</b> <?php echo $pregoeiro_nome; ?></p>
+                <p><b>PREGOEIRA RESPONSÁVEL:</b> <span id="view-pregoeiro"><?php echo $pregoeiro_nome; ?></span></p>
                 <p><b>REFERÊNCIA DE TEMPO:</b> Será observado o horário de Brasília (DF).</p>
                 
                 <p>Os documentos que integram o Edital serão disponibilizados nos seguintes locais:</p>
@@ -140,17 +216,26 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p>Anexo I – Estudo Técnico Preliminar (ETP);</p>
                 <p>Anexo II – Termo de Referência (TR);</p>
                 <p>Anexo III – Modelo de Proposta;</p>
-                <p>Anexo IV – Modelo de Declaração;</p>
-                <p>Anexo V – Modelo Contratual;</p>
+                <p>Anexo IV – Modelo Contratual;</p>
             </div>
 
-            <div id="edital-detalhamento" class="secao-numerada">
+			<div id="edital-detalhamento" class="secao-numerada">
                 <p class="bold"><span class="nr-titulo"></span>. DETALHAMENTO DO OBJETO:</p>
                 <p class="subitem">Especificações e Quantidades:</p>
-                <p class="subitem-3">Constitui objeto da presente licitação a contratação para o fornecimento dos seguintes ITENS, cujas descrições e condições de entrega estão detalhadas no Termo de Referência (Anexo II):</p>
-                <table>
-                    <tr style="background-color: #f2f2f2;"><th>ITEM</th><th>MEDIDA</th><th>DESCRIÇÃO</th><th>QUANT.</th></tr>
-                    <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                
+                <p class="subitem-3" id="view-detalhe-intro">Constitui objeto da presente licitação a contratação para o fornecimento dos seguintes ITENS, cujas descrições e condições de entrega estão detalhadas no Termo de Referência (Anexo II):</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="border: 1px solid #000; padding: 5px; text-align: center; width: 10%;">ITEM</th>
+                            <th style="border: 1px solid #000; padding: 5px; text-align: center; width: 10%;">MEDIDA</th>
+                            <th style="border: 1px solid #000; padding: 5px; text-align: left;">DESCRIÇÃO</th>
+                            <th style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">QUANT.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="view-tabela-itens-body">
+                        </tbody>
                 </table>
             </div>
 
@@ -442,6 +527,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
         </div>
     </div>
 </div>
+
 <?php
 render_footer();
 ?>
