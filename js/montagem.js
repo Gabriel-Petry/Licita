@@ -8,13 +8,15 @@ window.atualizarPreview = function(elementId, valor) {
 };
 
 window.adicionarItemTabela = function(dados) {
-    var nr   = dados ? dados.nr   : document.getElementById('add-item-nr').value;
-    var un   = dados ? dados.un   : document.getElementById('add-item-un').value;
-    var qtd  = dados ? dados.qtd  : document.getElementById('add-item-qtd').value;
-    var desc = dados ? dados.desc : document.getElementById('add-item-desc').value;
+    var isManual = !dados || (dados instanceof Event);
+
+    var nr    = !isManual ? dados.nr    : document.getElementById('add-item-nr').value;
+    var un    = !isManual ? dados.un    : document.getElementById('add-item-un').value;
+    var qtd   = !isManual ? dados.qtd   : document.getElementById('add-item-qtd').value;
+    var desc  = !isManual ? dados.desc  : document.getElementById('add-item-desc').value;
 
     if (!desc) {
-        if(!dados) alert("Preencha a Descrição.");
+        if(isManual) alert("Preencha a Descrição.");
         return;
     }
 
@@ -23,6 +25,7 @@ window.adicionarItemTabela = function(dados) {
         console.error('Tabela "view-tabela-itens-body" não encontrada.');
         return;
     }
+    
     var row = document.createElement('tr');
 
     row.innerHTML = 
@@ -33,7 +36,7 @@ window.adicionarItemTabela = function(dados) {
 
     tbody.appendChild(row);
 
-    if (!dados) {
+    if (isManual) {
         document.getElementById('add-item-nr').value = "";
         document.getElementById('add-item-desc').value = "";
         document.getElementById('add-item-un').value = "";
@@ -54,7 +57,7 @@ window.importarItens = function(input) {
         formData.append('arquivo', input.files[0]);
         document.body.style.cursor = 'wait';
 
-        fetch('api_importar_itens.php', {
+        fetch('/api_importar_itens.php', {
             method: 'POST',
             body: formData
         })
@@ -77,8 +80,8 @@ window.importarItens = function(input) {
         })
         .catch(function(error) {
             document.body.style.cursor = 'default';
-            console.error('Erro:', error);
-            alert('Erro ao processar arquivo.');
+            console.error('Erro na requisição:', error);
+            alert('Erro ao processar arquivo. Verifique o console.');
             input.value = '';
         });
     }
@@ -88,11 +91,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var dataStore = document.getElementById('edital-data-store');
     if (dataStore) Edital.dados = { ...dataStore.dataset };
 
-    NumeraTudo();
+    var btnAdd = document.getElementById('btn-add-item');
+    if(btnAdd) {
+        btnAdd.addEventListener('click', function(e) {
+            e.preventDefault(); 
+            adicionarItemTabela(); 
+        });
+    }
+
+    var btnLimpar = document.getElementById('btn-limpar-tabela');
+    if(btnLimpar) {
+        btnLimpar.addEventListener('click', function(e) {
+            e.preventDefault();
+            limparTabela();
+        });
+    }
+
+    var inputImportar = document.getElementById('input-importar-planilha');
+    if(inputImportar) {
+        inputImportar.addEventListener('change', function() {
+            importarItens(this);
+        });
+    }
+
+    if(typeof NumeraTudo === 'function') NumeraTudo();
     initNavAccordion();
     initLiveEdit();
 
-    var observer = new MutationObserver(function() { NumeraTudo(); });
+    var observer = new MutationObserver(function() { 
+        if(typeof NumeraTudo === 'function') NumeraTudo(); 
+    });
+    
     var previewContainer = document.querySelector('.editor-preview');
     if (previewContainer) {
         observer.observe(previewContainer, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
@@ -159,14 +188,17 @@ function NumeraTudo() {
     var cont1 = 1;
     secoes.forEach(function(secao) {
         var style = window.getComputedStyle(secao);
+        
         if (style.display !== 'none' && !secao.classList.contains('hidden')) {
             var spanTitulo = secao.querySelector('.nr-titulo');
             if (spanTitulo) spanTitulo.textContent = cont1;
 
             var cont2 = 0, cont3 = 0, cont4 = 0;
             var itens = secao.querySelectorAll('.subitem, .subitem-3, .subitem-4');
+            
             itens.forEach(function(paragrafo) {
                 if (paragrafo.classList.contains('hidden')) return;
+                
                 var prefixo = "";
                 if (paragrafo.classList.contains('subitem')) {
                     cont2++; cont3 = 0; cont4 = 0;
@@ -181,6 +213,7 @@ function NumeraTudo() {
                     cont4++;
                     prefixo = cont1 + "." + cont2 + "." + cont3 + "." + cont4 + ". ";
                 }
+                
                 var spanNumero = paragrafo.querySelector('.nr-auto');
                 if (!spanNumero) {
                     spanNumero = document.createElement('span');
@@ -191,6 +224,7 @@ function NumeraTudo() {
                 }
                 spanNumero.textContent = prefixo;
             });
+            
             secao.dataset.numeroCapitulo = cont1;
             cont1++;
         }

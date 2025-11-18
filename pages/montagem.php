@@ -101,7 +101,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                         
                         <label style="font-weight: bold; color: #1351b4; display: block; margin-bottom: 5px;">Importar Planilha:</label>
                         <div class="br-input small mb-3" style="border: 1px dashed #1351b4; padding: 10px; background: #f8faff; border-radius: 4px;">
-                            <input type="file" accept=".xlsx, .xls, .csv" onchange="importarItens(this)" style="border: none; padding: 0; width: 100%;">
+                            <input type="file" id="input-importar-planilha" accept=".xlsx, .xls, .csv" style="border: none; padding: 0; width: 100%;">
                             <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
                                 Aceita Excel/CSV (Cols: Item, Descrição, Unid, Qtd)
                             </div>
@@ -133,10 +133,10 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                         </div>
 
                         <div style="display: flex; gap: 5px;">
-                            <button type="button" class="br-button primary small" style="flex: 1;" onclick="adicionarItemTabela()">
+                            <button type="button" id="btn-add-item" class="br-button primary small" style="flex: 1;">
                                 <i class="fas fa-plus"></i> Add
                             </button>
-                            <button type="button" class="br-button secondary small" onclick="limparTabela()">
+                            <button type="button" id="btn-limpar-tabela" class="br-button secondary small">
                                 <i class="fas fa-trash"></i> Limpar
                             </button>
                         </div>
