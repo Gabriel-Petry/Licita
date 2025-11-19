@@ -9,6 +9,77 @@ window.atualizarPreview = function(elementId, valor) {
     }
 };
 
+window.atualizarTextoDisputa = function() {
+    console.log("Atualizando textos de disputa...");
+
+    var radios = document.getElementsByName('input-modo-disputa');
+    var modo = 'aberto';
+    for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) {
+            modo = radios[i].value;
+            break;
+        }
+    }
+
+    var textos = {
+        aberto: {
+            intro: "Será adotado o modo de disputa aberto, em que os licitantes apresentarão lances públicos e sucessivos, observando as regras constantes no item 7.",
+            p1: "A etapa competitiva, de envio de lances na sessão pública, durará 10 (dez) minutos e, após isso, será prorrogada automaticamente pelo sistema quando houver lance ofertado nos últimos dois minutos do período de duração da sessão pública.",
+            p2: "A prorrogação automática da etapa de envio de lances será de dois minutos e ocorrerá sucessivamente sempre que houver lances enviados nesse período de prorrogação, inclusive quando se tratar de lances intermediários.",
+            p3: "Na hipótese de não haver novos lances, a sessão pública será encerrada automaticamente.",
+            p4: "Encerrada a sessão pública sem prorrogação automática pelo sistema, o pregoeiro poderá, assessorado pela equipe de apoio, admitir o reinício da etapa de envio de lances, em prol da consecução do melhor preço, mediante justificativa.",
+            p5: null,
+            p6: null 
+        },
+        aberto_fechado: {
+            intro: "Será adotado o modo de disputa aberto e fechado, em que os licitantes apresentarão lances públicos e sucessivos, com lance final e fechado, observando as regras constantes no item 7.",
+            p1: "A etapa de lances da sessão pública terá duração inicial de quinze minutos. Após esse prazo, o sistema encaminhará aviso de fechamento iminente dos lances, após o que transcorrerá o período de até dez minutos, aleatoriamente determinado, findo o qual será automaticamente encerrada a recepção de lances.",
+            p2: "Encerrado o prazo previsto no subitem anterior, o sistema abrirá oportunidade para que o autor da oferta de valor mais baixo e os das ofertas com preços até 10% (dez por cento) superiores àquela possam ofertar um lance final e fechado em até cinco minutos, o qual será sigiloso até o encerramento deste prazo.",
+            p3: "No procedimento de que trata o subitem supra, o licitante poderá optar por manter o seu último lance da etapa aberta, ou por ofertar melhor lance.",
+            p4: "Não havendo pelo menos três ofertas nas condições definidas neste item, poderão os autores dos melhores lances subsequentes, na ordem de classificação, até o máximo de três, oferecer um lance final e fechado em até cinco minutos, o qual será sigiloso até o encerramento deste prazo.",
+            p5: null,
+            p6: null
+        },
+        fechado: {
+            intro: "No modo de disputa “fechado e aberto”, poderão participar da etapa aberta somente os licitantes que apresentarem a proposta de menor preço/ maior percentual de desconto e os das propostas até 10% (dez por cento) superiores/inferiores àquela, em que os licitantes apresentarão lances públicos e sucessivos, até o encerramento da sessão e eventuais prorrogações.",
+            p1: "Não havendo pelo menos 3 (três) propostas nas condições definidas no item anterior, poderão os licitantes que apresentaram as três melhores propostas, consideradas as empatadas, oferecer novos lances sucessivos.",
+            p2: "A etapa de lances da sessão pública terá duração de dez minutos e, após isso, será prorrogada automaticamente pelo sistema quando houver lance ofertado nos últimos dois minutos do período de duração da sessão pública.",
+            p3: "A prorrogação automática da etapa de lances, de que trata o subitem anterior, será de dois minutos e ocorrerá sucessivamente sempre que houver lances enviados nesse período de prorrogação, inclusive no caso de lances intermediários.",
+            p4: "Não havendo novos lances na forma estabelecida nos itens anteriores, a sessão pública encerrar-se-á automaticamente, e o sistema ordenará e divulgará os lances conforme a ordem final de classificação.",
+            p5: "Definida a melhor proposta, se a diferença em relação à proposta classificada em segundo lugar for de pelo menos 5% (cinco por cento), o Pregoeiro, auxiliado pela equipe de apoio, poderá admitir o reinício da disputa aberta, para a definição das demais colocações.",
+            p6: "Após o reinício previsto no subitem supra, os licitantes serão convocados para apresentar lances intermediários."
+        }
+    };
+
+    var t = textos[modo] || textos['aberto'];
+
+    function set(id, txt) {
+        var el = document.getElementById(id);
+        if (el) {
+            if (txt) {
+                el.innerText = txt;
+                el.style.display = 'block'; 
+                el.style.backgroundColor = "#fff3cd";
+                setTimeout(function() { el.style.backgroundColor = "transparent"; }, 500);
+            } else {
+                el.style.display = 'none';
+                el.innerText = '';
+            }
+        }
+    }
+
+    set('md-intro', t.intro);
+    set('md-p1', t.p1);
+    set('md-p2', t.p2);
+    set('md-p3', t.p3);
+    set('md-p4', t.p4);
+    set('md-p5', t.p5);
+    set('md-p6', t.p6);
+    
+    if (typeof NumeraTudo === 'function') NumeraTudo();
+};
+
+
 window.atualizarModoDisputa = function() {
     var radios = document.getElementsByName('input-tipo-jul');
     var selecionado = 'item';
@@ -48,21 +119,7 @@ window.atualizarModoDisputa = function() {
         if (divSelDestino) divSelDestino.style.display = 'none';
         window.gerarTabelaUnica();
     }
-
-    recalcularAlturaMenuAtivo();
 };
-
-function recalcularAlturaMenuAtivo() {
-    var activeGroup = document.querySelector('.nav-group.active');
-    if (activeGroup) {
-        var content = activeGroup.querySelector('.nav-group-content');
-        if (content) {
-            content.style.maxHeight = 'none';
-            var novaAltura = content.scrollHeight;
-            content.style.maxHeight = novaAltura + "px";
-        }
-    }
-}
 
 window.gerarEstruturaLotes = function() {
     var inputQtd = document.getElementById('input-qtd-lotes');
@@ -108,10 +165,7 @@ window.gerarEstruturaLotes = function() {
             selectDestino.appendChild(option);
         }
     }
-
-    if (typeof NumeraTudo === 'function') {
-        NumeraTudo();
-    }
+    if (typeof NumeraTudo === 'function') NumeraTudo();
 };
 
 window.gerarTabelaUnica = function() {
@@ -131,15 +185,11 @@ window.gerarTabelaUnica = function() {
             <tbody id="view-tabela-itens-body"></tbody>
         </table>
     `;
-
-    if (typeof NumeraTudo === 'function') {
-        NumeraTudo();
-    }
+    if (typeof NumeraTudo === 'function') NumeraTudo();
 };
 
 window.adicionarItemTabela = function(dados) {
     var isManual = !dados || (dados instanceof Event);
-
     var nr = !isManual ? dados.nr : document.getElementById('add-item-nr').value;
     var un = !isManual ? dados.un : document.getElementById('add-item-un').value;
     var qtd = !isManual ? dados.qtd : document.getElementById('add-item-qtd').value;
@@ -160,10 +210,7 @@ window.adicionarItemTabela = function(dados) {
 
     var tbody = document.getElementById(tbodyId);
     if (!tbody) {
-        console.error('Tabela destino não encontrada: ' + tbodyId);
-        if (tbodyId !== 'view-tabela-itens-body') {
-            alert("Erro: A tabela do Lote " + selectDestino.value + " não foi encontrada.");
-        }
+        if (tbodyId !== 'view-tabela-itens-body') alert("Erro: Tabela destino não encontrada.");
         return;
     }
 
@@ -188,13 +235,10 @@ window.limparTabela = function() {
     if (confirm("Tem certeza? Isso apagará itens de TODOS os lotes/tabelas.")) {
         var tbody = document.getElementById('view-tabela-itens-body');
         if (tbody) tbody.innerHTML = "";
-
         var container = document.getElementById('container-tabelas-itens');
         if (container) {
             var tbodies = container.querySelectorAll('tbody');
-            tbodies.forEach(function(tb) {
-                tb.innerHTML = "";
-            });
+            tbodies.forEach(function(tb) { tb.innerHTML = ""; });
         }
     }
 };
@@ -205,44 +249,35 @@ window.importarItens = function(input) {
         formData.append('arquivo', input.files[0]);
         document.body.style.cursor = 'wait';
 
-        fetch('/api_importar_itens.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(function(response) {
-                return response.json();
-            })
+        fetch('/api_importar_itens.php', { method: 'POST', body: formData })
+            .then(function(response) { return response.json(); })
             .then(function(data) {
                 document.body.style.cursor = 'default';
                 if (data.erro) {
                     alert('Erro: ' + data.erro);
                 } else if (data.itens && data.itens.length > 0) {
-                    if (confirm("Encontramos " + data.itens.length + " itens. Deseja adicionar à tabela?")) {
-                        data.itens.forEach(function(item) {
-                            window.adicionarItemTabela(item);
-                        });
-                        alert("Importação concluída!");
+                    if (confirm("Encontramos " + data.itens.length + " itens. Deseja adicionar?")) {
+                        data.itens.forEach(function(item) { window.adicionarItemTabela(item); });
+                        alert("Concluído!");
                     }
                 } else {
-                    alert("Nenhum item válido encontrado na planilha.");
+                    alert("Nenhum item válido encontrado.");
                 }
                 input.value = '';
             })
             .catch(function(error) {
                 document.body.style.cursor = 'default';
-                console.error('Erro na requisição:', error);
-                alert('Erro ao processar arquivo. Verifique o console.');
+                console.error(error);
+                alert('Erro ao processar arquivo.');
                 input.value = '';
             });
     }
 };
 
+// --- Inicialização ---
 document.addEventListener('DOMContentLoaded', function() {
     var dataStore = document.getElementById('edital-data-store');
-    if (dataStore) {
-        Edital.dados = { ...dataStore.dataset
-        };
-    }
+    if (dataStore) { Edital.dados = { ...dataStore.dataset }; }
 
     var btnAdd = document.getElementById('btn-add-item');
     if (btnAdd) {
@@ -262,9 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var inputImportar = document.getElementById('input-importar-planilha');
     if (inputImportar) {
-        inputImportar.addEventListener('change', function() {
-            window.importarItens(this);
-        });
+        inputImportar.addEventListener('change', function() { window.importarItens(this); });
     }
 
     var inputQtdLotes = document.getElementById('input-qtd-lotes');
@@ -272,15 +305,22 @@ document.addEventListener('DOMContentLoaded', function() {
         inputQtdLotes.addEventListener('input', window.gerarEstruturaLotes);
     }
 
-    var radios = document.getElementsByName('input-tipo-jul');
-    radios.forEach(function(radio) {
+    var radiosJulgamento = document.getElementsByName('input-tipo-jul');
+    radiosJulgamento.forEach(function(radio) {
         radio.addEventListener('change', window.atualizarModoDisputa);
+    });
+    
+    var radiosDisputa = document.getElementsByName('input-modo-disputa');
+    radiosDisputa.forEach(function(radio) {
+        radio.addEventListener('change', window.atualizarTextoDisputa);
     });
 
     if (typeof initNavAccordion === 'function') initNavAccordion();
     if (typeof initLiveEdit === 'function') initLiveEdit();
+    if (typeof initReverseLiveEdit === 'function') initReverseLiveEdit();
 
     window.atualizarModoDisputa();
+    window.atualizarTextoDisputa();
 
     if (typeof NumeraTudo === 'function') NumeraTudo();
 
@@ -289,20 +329,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     var previewContainer = document.querySelector('.editor-preview');
     if (previewContainer) {
-        observer.observe(previewContainer, {
-            attributes: true,
-            subtree: true,
-            attributeFilter: ['class', 'style']
-        });
+        observer.observe(previewContainer, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
     }
 
     var formPdf = document.getElementById('pdf-form');
     if (formPdf) {
         formPdf.addEventListener('submit', function() {
             var content = document.querySelector('.document-paper');
-            if (content) {
-                document.getElementById('hidden_html_content').value = content.innerHTML;
-            }
+            if (content) document.getElementById('hidden_html_content').value = content.innerHTML;
         });
     }
 });
@@ -313,13 +347,19 @@ function initLiveEdit() {
         input.addEventListener('input', function() {
             var targetId = this.getAttribute('data-live-target');
             var targetEl = document.getElementById(targetId);
-            if (targetEl) {
-                if (this.tagName === 'TEXTAREA') {
-                    targetEl.innerText = this.value;
-                } else {
-                    targetEl.innerText = this.value;
-                }
-            }
+            if (targetEl) targetEl.innerText = this.value;
+        });
+    });
+}
+
+function initReverseLiveEdit() {
+    var editables = document.querySelectorAll('.editable-field');
+    editables.forEach(function(el) {
+        el.addEventListener('input', function() {
+            var myId = this.id;
+            var content = this.innerText;
+            var inputEsquerda = document.querySelector('[data-live-target="' + myId + '"]');
+            if (inputEsquerda) inputEsquerda.value = content;
         });
     });
 }
@@ -330,9 +370,7 @@ function initNavAccordion() {
         header.addEventListener('click', function() {
             var group = this.parentElement;
             var content = group.querySelector('.nav-group-content');
-
             group.classList.toggle('active');
-
             if (group.classList.contains('active')) {
                 content.style.maxHeight = content.scrollHeight + "px";
             } else {
@@ -344,9 +382,7 @@ function initNavAccordion() {
     var links = document.querySelectorAll('.nav-item, .sub-item');
     links.forEach(function(link) {
         link.addEventListener('click', function() {
-            document.querySelectorAll('.nav-item, .sub-item').forEach(function(l) {
-                l.classList.remove('active-link');
-            });
+            document.querySelectorAll('.nav-item, .sub-item').forEach(function(l) { l.classList.remove('active-link'); });
             link.classList.add('active-link');
         });
     });
@@ -357,34 +393,25 @@ function NumeraTudo() {
     var cont1 = 1;
     secoes.forEach(function(secao) {
         var style = window.getComputedStyle(secao);
-
         if (style.display !== 'none' && !secao.classList.contains('hidden')) {
             var spanTitulo = secao.querySelector('.nr-titulo');
             if (spanTitulo) spanTitulo.textContent = cont1;
 
-            var cont2 = 0,
-                cont3 = 0,
-                cont4 = 0;
+            var cont2 = 0, cont3 = 0, cont4 = 0;
             var itens = secao.querySelectorAll('.subitem, .subitem-3, .subitem-4');
 
             itens.forEach(function(paragrafo) {
-                if (paragrafo.classList.contains('hidden')) return;
+                if (paragrafo.classList.contains('hidden') || paragrafo.style.display === 'none') return;
 
                 var prefixo = "";
                 if (paragrafo.classList.contains('subitem')) {
-                    cont2++;
-                    cont3 = 0;
-                    cont4 = 0;
+                    cont2++; cont3 = 0; cont4 = 0;
                     prefixo = cont1 + "." + cont2 + ". ";
                 } else if (paragrafo.classList.contains('subitem-3')) {
-                    if (cont2 === 0) cont2 = 1;
-                    cont3++;
-                    cont4 = 0;
+                    if (cont2 === 0) cont2 = 1; cont3++; cont4 = 0;
                     prefixo = cont1 + "." + cont2 + "." + cont3 + ". ";
                 } else if (paragrafo.classList.contains('subitem-4')) {
-                    if (cont2 === 0) cont2 = 1;
-                    if (cont3 === 0) cont3 = 1;
-                    cont4++;
+                    if (cont2 === 0) cont2 = 1; if (cont3 === 0) cont3 = 1; cont4++;
                     prefixo = cont1 + "." + cont2 + "." + cont3 + "." + cont4 + ". ";
                 }
 
@@ -399,18 +426,20 @@ function NumeraTudo() {
                 spanNumero.textContent = prefixo;
             });
 
+            if (secao.id) {
+                var linkSidebar = document.querySelector('.editor-sidebar a[href="#' + secao.id + '"]:not(.br-button)');
+                var tituloGrupo = document.querySelector('.editor-sidebar .titulo-grupo[data-target="' + secao.id + '"]');
+
+                if (linkSidebar) {
+                    var textoLimpo = linkSidebar.innerText.replace(/^\d+\.?\s*/, '');
+                    linkSidebar.innerText = cont1 + ". " + textoLimpo;
+                } else if (tituloGrupo) {
+                    var textoLimpoG = tituloGrupo.innerText.replace(/^\d+\.?\s*/, '');
+                    tituloGrupo.innerText = cont1 + ". " + textoLimpoG;
+                }
+            }
             secao.dataset.numeroCapitulo = cont1;
             cont1++;
-        }
-    });
-
-    var linksSidebar = document.querySelectorAll('.nav-item, .titulo-grupo');
-    linksSidebar.forEach(function(link) {
-        var targetId = null;
-        if (link.tagName === 'A') {
-            targetId = link.getAttribute('href') ? link.getAttribute('href').substring(1) : null;
-        } else if (link.tagName === 'SPAN') {
-            targetId = link.parentElement.parentElement.querySelector('a') ? null : null;
         }
     });
 }

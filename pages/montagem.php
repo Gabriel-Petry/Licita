@@ -95,7 +95,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
 
                     <div class="nav-group">
                         <div class="nav-group-header">
-                            <span class="titulo-grupo">1. DETALHAMENTO DO OBJETO</span>
+                            <span class="titulo-grupo" data-target="edital-detalhamento">DETALHAMENTO DO OBJETO</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
@@ -170,11 +170,34 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                         </div>
                     </div>
 
-                    <a href="#edital-modo-disputa" class="nav-item">5. MODO DE DISPUTA</a>
+                    <div class="nav-group">
+                        <div class="nav-group-header">
+                            <span class="titulo-grupo" data-target="edital-modo-disputa">5. MODO DE DISPUTA</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+                            <label style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 10px; color: #555;">Selecione o Modo:</label>
+
+                            <div class="toggle-options-wrapper">
+                                <input type="radio" id="opt-disp-aberto" name="input-modo-disputa" value="aberto" checked onchange="atualizarTextoDisputa()">
+                                <label for="opt-disp-aberto">Aberto</label>
+
+                                <input type="radio" id="opt-disp-aberto-fechado" name="input-modo-disputa" value="aberto_fechado" onchange="atualizarTextoDisputa()">
+                                <label for="opt-disp-aberto-fechado">Aberto/Fechado</label>
+
+                                <input type="radio" id="opt-disp-fechado" name="input-modo-disputa" value="fechado" onchange="atualizarTextoDisputa()">
+                                <label for="opt-disp-fechado">Fechado</label>
+                            </div>
+
+                            <div style="text-align: center; margin-top: 15px;">
+                                <a href="#edital-modo-disputa" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="nav-group">
                         <div class="nav-group-header">
-                            <span class="titulo-grupo">7. PROPOSTAS E HABILITAÇÃO</span>
+                            <span class="titulo-grupo" data-target="edital-propostas-lances-habilitacao">PROPOSTAS E HABILITAÇÃO</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="nav-group-content">
@@ -187,9 +210,9 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                         </div>
                     </div>
 
-                    <a href="#edital-dotacao" class="nav-item">20. DOTAÇÃO ORÇAMENTÁRIA</a>
-                    <a href="#edital-infracoes-sancoes" class="nav-item">22. INFRAÇÕES E SANÇÕES</a>
-                    <a href="#edital-disposicoes-gerais" class="nav-item">23. DISPOSIÇÕES GERAIS</a>
+                    <a href="#edital-dotacao" class="nav-item">DOTAÇÃO ORÇAMENTÁRIA</a>
+                    <a href="#edital-infracoes-sancoes" class="nav-item">INFRAÇÕES E SANÇÕES</a>
+                    <a href="#edital-disposicoes-gerais" class="nav-item">DISPOSIÇÕES GERAIS</a>
 
                 </div>
             </div>
@@ -284,11 +307,14 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
 
             <div id="edital-modo-disputa" class="secao-numerada">
                 <p class="bold"><span class="nr-titulo"></span>. MODO DE DISPUTA</p>
-                <p class="subitem">Será adotado o modo de disputa aberto, em que os licitantes apresentarão lances públicos e sucessivos, observando as regras constantes no item 7.</p>
-                <p class="subitem">A etapa competitiva, de envio de lances na sessão pública, durará 10 (dez) minutos e, após isso, será prorrogada automaticamente pelo sistema quando houver lance ofertado nos últimos dois minutos do período de duração da sessão pública.</p>
-                <p class="subitem">A prorrogação automática da etapa de envio de lances será de dois minutos e ocorrerá sucessivamente sempre que houver lances enviados nesse período de prorrogação, inclusive quando se tratar de lances intermediários.</p>
-                <p class="subitem">Na hipótese de não haver novos lances, a sessão pública será encerrada automaticamente.</p>
-                <p class="subitem">Encerrada a sessão pública sem prorrogação automática pelo sistema, o pregoeiro poderá, assessorado pela equipe de apoio, admitir o reinício da etapa de envio de lances, em prol da consecução do melhor preço, mediante justificativa.</p>
+
+                <p class="subitem" id="md-intro">Será adotado o modo de disputa aberto, em que os licitantes apresentarão lances públicos e sucessivos, observando as regras constantes no item 7.</p>
+                <p class="subitem" id="md-p1">A etapa competitiva, de envio de lances na sessão pública, durará 10 (dez) minutos e, após isso, será prorrogada automaticamente pelo sistema quando houver lance ofertado nos últimos dois minutos do período de duração da sessão pública.</p>
+                <p class="subitem" id="md-p2">A prorrogação automática da etapa de envio de lances será de dois minutos e ocorrerá sucessivamente sempre que houver lances enviados nesse período de prorrogação, inclusive quando se tratar de lances intermediários.</p>
+                <p class="subitem" id="md-p3">Na hipótese de não haver novos lances, a sessão pública será encerrada automaticamente.</p>
+                <p class="subitem" id="md-p4">Encerrada a sessão pública sem prorrogação automática pelo sistema, o pregoeiro poderá, assessorado pela equipe de apoio, admitir o reinício da etapa de envio de lances, em prol da consecução do melhor preço, mediante justificativa.</p>
+                <p class="subitem" id="md-p5"></p>
+                <p class="subitem" id="md-p6"></p>
                 <p class="subitem">Na hipótese de o sistema eletrônico desconectar para o pregoeiro no decorrer da etapa de envio de lances da sessão pública e permanecer acessível aos licitantes, os lances continuarão sendo recebidos, sem prejuízo dos atos realizados.</p>
                 <p class="subitem">Quando a desconexão do sistema eletrônico para o pregoeiro persistir por tempo superior a 10 (dez) minutos, a sessão pública será suspensa e reiniciada somente decorridas 24 (vinte e quatro horas) após a comunicação do fato aos participantes, no sítio eletrônico www.portaldecompraspublicas.com.br.</p>
             </div>
