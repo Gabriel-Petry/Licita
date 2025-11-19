@@ -1,11 +1,14 @@
 <?php
+
 require_once __DIR__ . '/../includes/layout.php';
 
 $user = current_user();
+
 if (!$user) {
     header('Location: /login');
     exit;
 }
+
 if (!tem_permissao('licitacoes.ver')) {
     header('Location: /sem_permissao');
     exit;
@@ -34,183 +37,197 @@ $modalidade_texto = ($modalidade_val == '1') ? "Pregão Eletrônico" : "Concorr�
 $criterio_texto = ($cj_val == '1') ? "Menor Preço" : "Maior Desconto";
 $data_hoje = date('d/m/Y');
 
-$page_styles = [ '/css/montagem.css' ];
-$page_scripts = [ '/js/montagem.js?v=' . time() ];
+$page_styles = ['/css/montagem.css'];
+$page_scripts = ['/js/montagem.js?v=' . time()];
 
 render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $page_styles]);
 ?>
 
 <div id="edital-data-store"
-     data-modalidade="<?php echo $modalidade_val; ?>"
-     data-srp="<?php echo $srp_val; ?>"
-     data-cj="<?php echo $cj_val; ?>"
-></div>
+    data-modalidade="<?php echo $modalidade_val; ?>"
+    data-srp="<?php echo $srp_val; ?>"
+    data-cj="<?php echo $cj_val; ?>">
+</div>
 
 <div class="editor-container">
-
-<div class="editor-sidebar">
-    <div class="card">
-        <div class="card-header">
-            <h3>Navegação</h3>
-        </div>
-        <div class="card-content" style="padding: 0;">
-            <div class="nav-accordion">
-                
-				<div class="nav-group">
-                    <div class="nav-group-header">
-                        <span class="titulo-grupo">CABEÇALHO / OBJETO</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
-                        <div class="br-input small mb-2">
-                            <label>Nº do Edital:</label>
-                            <input type="text" value="<?php echo $pregao_num; ?>" data-live-target="view-pregao">
-                        </div>
-                        <div class="br-input small mb-2">
-                            <label>Processo Adm.:</label>
-                            <input type="text" value="<?php echo $processo_num; ?>" data-live-target="view-processo">
-                        </div>
-                        <div class="br-input small mb-2">
-                            <label>Requisição:</label>
-                            <input type="text" value="<?php echo $requisicao_num; ?>" data-live-target="view-requisicao">
-                        </div>
-                        <div class="br-textarea small mb-2">
-                            <label>Objeto:</label>
-                            <textarea rows="4" data-live-target="view-objeto"><?php echo $objeto; ?></textarea>
-                        </div>
-                        <div class="br-input small mb-2">
-                            <label>Valor (R$):</label>
-                            <input type="text" value="<?php echo $valor_estimado; ?>" data-live-target="view-valor">
-                        </div>
-                        <div class="br-input small mb-2">
-                            <label>Pregoeiro(a):</label>
-                            <input type="text" value="<?php echo $pregoeiro_nome; ?>" data-live-target="view-pregoeiro">
-                        </div>
-                        <div style="text-align: center; margin-top: 10px;">
-                            <a href="#edital-cabecalho" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
-                        </div>
-                    </div>
-                </div>
-
-<div class="nav-group">
-                    <div class="nav-group-header">
-                        <span class="titulo-grupo">1. DETALHAMENTO DO OBJETO</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
-                        
-                        <label style="font-weight: bold; color: #1351b4; display: block; margin-bottom: 5px;">Importar Planilha:</label>
-                        <div class="br-input small mb-3" style="border: 1px dashed #1351b4; padding: 10px; background: #f8faff; border-radius: 4px;">
-                            <input type="file" id="input-importar-planilha" accept=".xlsx, .xls, .csv" style="border: none; padding: 0; width: 100%;">
-                            <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
-                                Aceita Excel/CSV (Cols: Item, Descrição, Unid, Qtd)
-                            </div>
-                        </div>
-
-                        <hr style="margin: 10px 0; border-color: #eee;">
-                        
-                        <label style="font-weight: bold; color: #555; display: block; margin-bottom: 10px;">Ou Adicionar Manualmente:</label>
-                        
-                        <div class="row" style="gap: 5px;">
-                            <div class="col" style="flex: 1;">
-                                <div class="br-input small">
-                                    <input type="text" id="add-item-nr" placeholder="Nº">
-                                </div>
-                            </div>
-                            <div class="col" style="flex: 1;">
-                                <div class="br-input small">
-                                    <input type="text" id="add-item-un" placeholder="Unid.">
-                                </div>
-                            </div>
-                            <div class="col" style="flex: 1;">
-                                <div class="br-input small">
-                                    <input type="text" id="add-item-qtd" placeholder="Qtd.">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="br-textarea small mt-2 mb-2">
-                            <textarea id="add-item-desc" rows="2" placeholder="Descrição do Item..."></textarea>
-                        </div>
-
-                        <div style="display: flex; gap: 5px;">
-                            <button type="button" id="btn-add-item" class="br-button primary small" style="flex: 1;">
-                                <i class="fas fa-plus"></i> Add
-                            </button>
-                            <button type="button" id="btn-limpar-tabela" class="br-button secondary small">
-                                <i class="fas fa-trash"></i> Limpar
-                            </button>
-                        </div>
-
-                        <div style="text-align: center; margin-top: 10px;">
-                            <a href="#edital-detalhamento" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
-                        </div>
-                    </div>
-                </div>
-                <a href="#edital-modo-disputa" class="nav-item">5. MODO DE DISPUTA</a>
-
-                <div class="nav-group">
-                    <div class="nav-group-header">
-                        <span class="titulo-grupo">7. PROPOSTAS E HABILITAÇÃO</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="nav-group-content">
-                        <a href="#edital-propostas-lances-habilitacao" class="sub-item">Visão Geral</a>
-                        <a href="#hab-juridica" class="sub-item">↳ Habilitação Jurídica</a>
-                        <a href="#hab-fiscal" class="sub-item">↳ Habilitação Fiscal</a>
-                        <a href="#hab-economica" class="sub-item">↳ Habilitação Econômica</a>
-                        <a href="#hab-tecnica" class="sub-item">↳ Habilitação Técnica</a>
-                        <a href="#hab-amostras" class="sub-item">↳ Amostras</a>
-                    </div>
-                </div>
-
-                <a href="#edital-dotacao" class="nav-item">20. DOTAÇÃO ORÇAMENTÁRIA</a>
-                <a href="#edital-infracoes-sancoes" class="nav-item">22. INFRAÇÕES E SANÇÕES</a>
-                <a href="#edital-disposicoes-gerais" class="nav-item">23. DISPOSIÇÕES GERAIS</a>
-                
-            </div>
-        </div>
-    </div>
-
-    <form id="pdf-form" method="POST" action="finalizar_pdf.php" target="_blank" style="margin-top: 1.5rem;">
-        <input type="hidden" name="edital_html" id="hidden_html_content">
+    <div class="editor-sidebar">
         <div class="card">
-            <div class="card-footer form-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
-                <button class="br-button secondary" type="button" id="btn-salvar-html">Salvar HTML</button>
-                <button class="br-button primary" type="submit" id="btn-gerar-pdf">Gerar PDF</button>
+            <div class="card-header">
+                <h3>Navegação</h3>
+            </div>
+            <div class="card-content" style="padding: 0;">
+                <div class="nav-accordion">
+                    <div class="nav-group">
+                        <div class="nav-group-header">
+                            <span class="titulo-grupo">CABEÇALHO / OBJETO</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+                            <div class="br-input small mb-2">
+                                <label>Nº do Edital:</label>
+                                <input type="text" value="<?php echo $pregao_num; ?>" data-live-target="view-pregao">
+                            </div>
+                            <div class="br-input small mb-2">
+                                <label>Processo Adm.:</label>
+                                <input type="text" value="<?php echo $processo_num; ?>" data-live-target="view-processo">
+                            </div>
+                            <div class="br-input small mb-2">
+                                <label>Requisição:</label>
+                                <input type="text" value="<?php echo $requisicao_num; ?>" data-live-target="view-requisicao">
+                            </div>
+                            <div class="br-textarea small mb-2">
+                                <label>Objeto:</label>
+                                <textarea rows="4" data-live-target="view-objeto"><?php echo $objeto; ?></textarea>
+                            </div>
+                            <div class="br-input small mb-2">
+                                <label>Valor (R$):</label>
+                                <input type="text" value="<?php echo $valor_estimado; ?>" data-live-target="view-valor">
+                            </div>
+                            <div class="br-input small mb-2">
+                                <label>Pregoeiro(a):</label>
+                                <input type="text" value="<?php echo $pregoeiro_nome; ?>" data-live-target="view-pregoeiro">
+                            </div>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <a href="#edital-cabecalho" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nav-group">
+                        <div class="nav-group-header">
+                            <span class="titulo-grupo">1. DETALHAMENTO DO OBJETO</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+                            <div style="background: #f8f9fa; padding: 10px; border: 1px solid #e9ecef; border-radius: 5px; margin-bottom: 15px;">
+                                <label style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px;">Modo de Execução:</label>
+                                <div class="toggle-options-wrapper">
+                                    <input type="radio" id="opt-item" name="input-tipo-jul" value="item" checked onchange="atualizarModoDisputa()">
+                                    <label for="opt-item">Item</label>
+
+                                    <input type="radio" id="opt-lote" name="input-tipo-jul" value="lote" onchange="atualizarModoDisputa()">
+                                    <label for="opt-lote">Lote</label>
+
+                                    <input type="radio" id="opt-global" name="input-tipo-jul" value="global" onchange="atualizarModoDisputa()">
+                                    <label for="opt-global">Global</label>
+                                </div>
+                                <div id="div-qtd-lotes" style="display: none; border-top: 1px solid #ddd; padding-top: 10px;">
+                                    <label style="font-size: 0.85em; font-weight: bold;">Qtd. de Lotes:</label>
+                                    <input type="number" id="input-qtd-lotes" class="br-input small" value="1" min="1" style="width: 100%; margin-top: 5px;" oninput="gerarEstruturaLotes()">
+                                </div>
+                            </div>
+
+                            <label style="font-weight: bold; color: #1351b4; display: block; margin-bottom: 5px;">Importar Planilha:</label>
+                            <div class="br-input small mb-3" style="border: 1px dashed #1351b4; padding: 10px; background: #f8faff; border-radius: 4px;">
+                                <input type="file" id="input-importar-planilha" accept=".xlsx, .xls, .csv" style="border: none; padding: 0; width: 100%;">
+                                <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                                    Aceita Excel/CSV (Cols: Item, Descrição, Unid, Qtd)
+                                </div>
+                            </div>
+
+                            <hr style="margin: 10px 0; border-color: #eee;">
+
+                            <label style="font-weight: bold; color: #555; display: block; margin-bottom: 10px;">Adicionar Manualmente:</label>
+
+                            <div id="div-select-lote-destino" class="mb-2" style="display: none;">
+                                <label style="font-size: 0.85em;">Adicionar ao:</label>
+                                <select id="select-lote-destino" class="br-input small" style="width: 100%;"></select>
+                            </div>
+
+                            <div class="row" style="gap: 5px;">
+                                <div class="col" style="flex: 1;">
+                                    <div class="br-input small">
+                                        <input type="text" id="add-item-nr" placeholder="Nº">
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1;">
+                                    <div class="br-input small">
+                                        <input type="text" id="add-item-un" placeholder="Unid.">
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1;">
+                                    <div class="br-input small">
+                                        <input type="text" id="add-item-qtd" placeholder="Qtd.">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="br-textarea small mt-2 mb-2">
+                                <textarea id="add-item-desc" rows="2" placeholder="Descrição do Item..."></textarea>
+                            </div>
+
+                            <div style="display: flex; gap: 5px;">
+                                <button type="button" id="btn-add-item" class="br-button primary small" style="flex: 1;">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                                <button type="button" id="btn-limpar-tabela" class="br-button secondary small">
+                                    <i class="fas fa-trash"></i> Limpar
+                                </button>
+                            </div>
+
+                            <div style="text-align: center; margin-top: 10px;">
+                                <a href="#edital-detalhamento" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="#edital-modo-disputa" class="nav-item">5. MODO DE DISPUTA</a>
+
+                    <div class="nav-group">
+                        <div class="nav-group-header">
+                            <span class="titulo-grupo">7. PROPOSTAS E HABILITAÇÃO</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="nav-group-content">
+                            <a href="#edital-propostas-lances-habilitacao" class="sub-item">Visão Geral</a>
+                            <a href="#hab-juridica" class="sub-item">↳ Habilitação Jurídica</a>
+                            <a href="#hab-fiscal" class="sub-item">↳ Habilitação Fiscal</a>
+                            <a href="#hab-economica" class="sub-item">↳ Habilitação Econômica</a>
+                            <a href="#hab-tecnica" class="sub-item">↳ Habilitação Técnica</a>
+                            <a href="#hab-amostras" class="sub-item">↳ Amostras</a>
+                        </div>
+                    </div>
+
+                    <a href="#edital-dotacao" class="nav-item">20. DOTAÇÃO ORÇAMENTÁRIA</a>
+                    <a href="#edital-infracoes-sancoes" class="nav-item">22. INFRAÇÕES E SANÇÕES</a>
+                    <a href="#edital-disposicoes-gerais" class="nav-item">23. DISPOSIÇÕES GERAIS</a>
+
+                </div>
             </div>
         </div>
-    </form>
-</div>
+
+        <form id="pdf-form" method="POST" action="finalizar_pdf.php" target="_blank" style="margin-top: 1.5rem;">
+            <input type="hidden" name="edital_html" id="hidden_html_content">
+            <div class="card">
+                <div class="card-footer form-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button class="br-button secondary" type="button" id="btn-salvar-html">Salvar HTML</button>
+                    <button class="br-button primary" type="submit" id="btn-gerar-pdf">Gerar PDF</button>
+                </div>
+            </div>
+        </form>
+    </div>
 
     <div class="editor-preview" id="right">
         <div class="document-paper">
-
-		<div id="edital-cabecalho">
+            <div id="edital-cabecalho">
                 <p class="center bold">EDITAL DE <?php echo strtoupper($modalidade_texto); ?> N° <span id="view-pregao"><?php echo $pregao_num; ?></span></p>
                 <p class="center bold">PROCESSO DIGITAL N° <span id="view-processo"><?php echo $processo_num; ?></span></p>
                 <p class="center bold">REQUISIÇÃO N° <span id="view-requisicao"><?php echo $requisicao_num; ?></span></p>
                 <br>
-
                 <p><b>OBJETO:</b> <span id="view-objeto"><?php echo $objeto; ?></span></p>
                 <p><b>VALOR TOTAL ESTIMADO:</b> R$ <span id="view-valor"><?php echo $valor_estimado; ?></span></p>
-                
                 <p><b>LIMITE PARA RECEBIMENTO DAS PROPOSTAS:</b><br>
-                Às 00h00min do dia 00/00/0000 até as 00h00min do dia 00/00/0000</p>
-                
+                    Às 00h00min do dia 00/00/0000 até as 00h00min do dia 00/00/0000</p>
                 <p><b>INÍCIO DA SESSÃO DE DISPUTA:</b><br>
-                Às 00h00min do dia 00/00/0000</p>
-                
+                    Às 00h00min do dia 00/00/0000</p>
                 <p><b>MODO DE DISPUTA:</b> Aberto</p>
                 <p><b>CRITÉRIO DE JULGAMENTO:</b> <?php echo $criterio_texto; ?></p>
                 <p><b>PREGOEIRA RESPONSÁVEL:</b> <span id="view-pregoeiro"><?php echo $pregoeiro_nome; ?></span></p>
                 <p><b>REFERÊNCIA DE TEMPO:</b> Será observado o horário de Brasília (DF).</p>
-                
                 <p>Os documentos que integram o Edital serão disponibilizados nos seguintes locais:</p>
                 <p>a) Portal Nacional de Contratações Públicas (PNCP) - https://www.gov.br/pncp/pt-br</p>
                 <p>b) Portal de Compras Públicas (PCP) - https://www.portaldecompraspublicas.com.br/</p>
                 <br>
-                
-                <p>O <b>MUNICÍPIO DE SAPUCAIA DO SUL</b>, inscrito no CNPJ/MF sob o n° 88.185.020/0001-25 por meio da <b>Diretoria de Compras e Licitações da Secretaria Municipal de Administração - SMA</b>, com sede no Endereço: Av. Leônidas de Souza, 1289 - Santa Catarina, Sapucaia do Sul - RS, 93210-140, torna público que realizará licitação na modalidade <b><?php echo $modalidade_texto; ?></b>, tipo por Menor Preço Global, Lote ou Item, que será regido pela Lei Federal nº 14.133 de 1º de abril de 2021, pela Lei Complementar 123/2006, pela Lei Federal n° 8.078/1990 e demais legislações aplicáveis e, ainda, de acordo com as condições estabelecidas neste Edital.</p>
+                <p>O <b>MUNICÍPIO DE SAPUCAIA DO SUL</b>, inscrito no CNPJ/MF sob o n° 88.185.020/0001-25 por meio da <b>Diretoria de Compras e Licitações da Secretaria Municipal de Administração - SMA</b>, com sede no Endereço: Av. Leônidas de Souza, 1289 - Santa Catarina, Sapucaia do Sul - RS, 93210-140, torna público que realizará licitação na modalidade <b><?php echo $modalidade_texto; ?></b>, tipo por <b id="texto-tipo-julgamento"></b>, que será regido pela Lei Federal nº 14.133 de 1º de abril de 2021, pela Lei Complementar 123/2006, pela Lei Federal n° 8.078/1990 e demais legislações aplicáveis e, ainda, de acordo com as condições estabelecidas neste Edital.</p>
                 <p>Conforme especificações descritas no Termo de Referência (Anexo II), o qual passa a ser parte integrante do presente edital.</p>
                 <p>Fazem parte integrante deste edital:</p>
                 <p>Anexo I – Estudo Técnico Preliminar (ETP);</p>
@@ -219,24 +236,11 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p>Anexo IV – Modelo Contratual;</p>
             </div>
 
-			<div id="edital-detalhamento" class="secao-numerada">
+            <div id="edital-detalhamento" class="secao-numerada">
                 <p class="bold"><span class="nr-titulo"></span>. DETALHAMENTO DO OBJETO:</p>
                 <p class="subitem">Especificações e Quantidades:</p>
-                
                 <p class="subitem-3" id="view-detalhe-intro">Constitui objeto da presente licitação a contratação para o fornecimento dos seguintes ITENS, cujas descrições e condições de entrega estão detalhadas no Termo de Referência (Anexo II):</p>
-                
-                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                    <thead>
-                        <tr style="background-color: #f2f2f2;">
-                            <th style="border: 1px solid #000; padding: 5px; text-align: center; width: 10%;">ITEM</th>
-                            <th style="border: 1px solid #000; padding: 5px; text-align: center; width: 10%;">MEDIDA</th>
-                            <th style="border: 1px solid #000; padding: 5px; text-align: left;">DESCRIÇÃO</th>
-                            <th style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">QUANT.</th>
-                        </tr>
-                    </thead>
-                    <tbody id="view-tabela-itens-body">
-                        </tbody>
-                </table>
+                <div id="container-tabelas-itens"></div>
             </div>
 
             <div id="edital-credenciamento" class="secao-numerada">
@@ -354,7 +358,6 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem-4">certidão negativa de falência expedida pelo distribuidor da sede da pessoa jurídica.</p>
 
                 <p class="bold subitem-3" id="hab-tecnica">HABILITAÇÃO TÉCNICA</p>
-
                 <p class="bold subitem-3" id="hab-amostras">DAS AMOSTRAS</p>
             </div>
 
