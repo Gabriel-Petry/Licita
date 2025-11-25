@@ -172,7 +172,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
 
                     <div class="nav-group">
                         <div class="nav-group-header">
-                            <span class="titulo-grupo" data-target="edital-modo-disputa">5. MODO DE DISPUTA</span>
+                            <span class="titulo-grupo" data-target="edital-modo-disputa">MODO DE DISPUTA</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
@@ -195,18 +195,107 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                         </div>
                     </div>
 
-                    <div class="nav-group">
+					<div class="nav-group">
                         <div class="nav-group-header">
                             <span class="titulo-grupo" data-target="edital-propostas-lances-habilitacao">PROPOSTAS E HABILITAÇÃO</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div class="nav-group-content">
-                            <a href="#edital-propostas-lances-habilitacao" class="sub-item">Visão Geral</a>
-                            <a href="#hab-juridica" class="sub-item">↳ Habilitação Jurídica</a>
-                            <a href="#hab-fiscal" class="sub-item">↳ Habilitação Fiscal</a>
-                            <a href="#hab-economica" class="sub-item">↳ Habilitação Econômica</a>
-                            <a href="#hab-tecnica" class="sub-item">↳ Habilitação Técnica</a>
-                            <a href="#hab-amostras" class="sub-item">↳ Amostras</a>
+                        <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+                            <p style="font-size: 0.85em; color: #666; margin-bottom: 10px; font-style: italic;">
+                                * Habilitação Jurídica e Fiscal são obrigatórias.
+                            </p>
+
+                            <details class="nested-accordion">
+                                <summary>Habilitação Econômica</summary>
+                                <div class="accordion-body">
+                                    <label style="font-size: 0.85em; display: block; margin-bottom: 5px;">Tipo de Exigência:</label>
+                                    <div class="toggle-options-wrapper">
+                                        <input type="radio" id="eco-simples" name="opt-hab-eco" value="simples" onchange="atualizarHabilitacao(this)">
+                                        <label for="eco-simples">Simples</label>
+
+                                        <input type="radio" id="eco-complexa" name="opt-hab-eco" value="complexa" checked onchange="atualizarHabilitacao(this)">
+                                        <label for="eco-complexa">Complexa</label>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <details class="nested-accordion">
+                                <summary>Habilitação Técnica</summary>
+                                <div class="accordion-body">
+                                    <label style="font-size: 0.85em; display: block; margin-bottom: 5px;">Será Exigida?</label>
+                                    <div class="toggle-options-wrapper">
+                                        <input type="radio" id="tec-sim" name="opt-hab-tec" value="sim" onchange="atualizarHabilitacao(this)">
+                                        <label for="tec-sim">Sim</label>
+
+                                        <input type="radio" id="tec-nao" name="opt-hab-tec" value="nao" checked onchange="atualizarHabilitacao(this)">
+                                        <label for="tec-nao">Não</label>
+                                    </div>
+
+                                    <div id="tools-hab-tec" class="tools-box" style="display:none;">
+                                        <label>Adicionar Cláusula:</label>
+                                        <textarea id="input-txt-tec" rows="3" placeholder="Ex: A empresa deverá apresentar atestado de..."></textarea>
+                                        
+                                        <div class="radio-toggle-group">
+                                            <label>
+                                                <input type="radio" name="nivel-tec" value="paragrafo" checked> Parágrafo
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="nivel-tec" value="sub"> Subparágrafo
+                                            </label>
+                                        </div>
+
+                                        <div class="btn-row">
+                                            <button type="button" onclick="adicionarItemDinamico('tec', this)" class="br-button primary small" style="flex: 2;">
+                                                <i class="fas fa-plus-circle"></i> Adicionar
+                                            </button>
+                                            <button type="button" onclick="limparItensDinamicos('tec', this)" class="br-button secondary small" style="flex: 1;" title="Limpar tudo">
+                                                <i class="fas fa-eraser"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <details class="nested-accordion">
+                                <summary>Amostras</summary>
+                                <div class="accordion-body">
+                                    <label style="font-size: 0.85em; display: block; margin-bottom: 5px;">Serão Exigidas?</label>
+                                    <div class="toggle-options-wrapper">
+                                        <input type="radio" id="amostra-sim" name="opt-hab-amostra" value="sim" onchange="atualizarHabilitacao(this)">
+                                        <label for="amostra-sim">Sim</label>
+
+                                        <input type="radio" id="amostra-nao" name="opt-hab-amostra" value="nao" checked onchange="atualizarHabilitacao(this)">
+                                        <label for="amostra-nao">Não</label>
+                                    </div>
+
+                                    <div id="tools-hab-amostra" class="tools-box" style="display:none;">
+                                        <label>Adicionar Cláusula:</label>
+                                        <textarea id="input-txt-amostra" rows="3" placeholder="Ex: O prazo para entrega da amostra será de..."></textarea>
+                                        
+                                        <div class="radio-toggle-group">
+                                            <label>
+                                                <input type="radio" name="nivel-amostra" value="paragrafo" checked> Parágrafo
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="nivel-amostra" value="sub"> Subparágrafo
+                                            </label>
+                                        </div>
+
+                                        <div class="btn-row">
+                                            <button type="button" onclick="adicionarItemDinamico('amostra', this)" class="br-button primary small" style="flex: 2;">
+                                                <i class="fas fa-plus-circle"></i> Adicionar
+                                            </button>
+                                            <button type="button" onclick="limparItensDinamicos('amostra', this)" class="br-button secondary small" style="flex: 1;" title="Limpar tudo">
+                                                <i class="fas fa-eraser"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <div style="text-align: center; margin-top: 15px;">
+                                <a href="#edital-propostas-lances-habilitacao" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                            </div>
                         </div>
                     </div>
 
@@ -380,12 +469,91 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem-4">declaração de cumprimento do disposto no inciso XXXIII do art. 7º da Constituição Federal.</p>
                 <p class="subitem-4">não possui empregados executando trabalho degradante ou forçado, observando o disposto nos incisos III e IV do art. 1º e no inciso III do art. 5º da Constituição Federal;</p>
 
-                <p class="bold subitem-3" id="hab-economica">HABILITAÇÃO ECONÔMICO-FINANCEIRA</p>
-                <p class="subitem-4">certidão negativa de falência expedida pelo distribuidor da sede da pessoa jurídica.</p>
+                <p class="bold subitem-3">HABILITAÇÃO ECONÔMICO-FINANCEIRA</p>
+                
+                <div id="texto-eco-complexa">
+                    <p class="subitem-4">balanço patrimonial, demonstração de resultado de exercício e demais demonstrações contábeis dos 2 (dois) últimos exercícios sociais;</p>
+                    <p class="subitem-4">certidão negativa de falência expedida pelo distribuidor da sede da pessoa jurídica, em prazo não superior a 30 (trinta) dias da data designada para a apresentação do documento;</p>
+                    <p class="subitem-4">para comprovação da boa situação financeira da empresa, serão apurados índices mínimos aceitáveis, pela aplicação das seguintes formulas:</p>
 
-                <p class="bold subitem-3" id="hab-tecnica">HABILITAÇÃO TÉCNICA</p>
-                <p class="bold subitem-3" id="hab-amostras">DAS AMOSTRAS</p>
-            </div>
+                    <div style="margin-left: 40px; margin-top: 15px; margin-bottom: 15px;">
+                        <table style="border-collapse: collapse;">
+
+                            <tr>
+                                <td style="font-weight: bold; padding-right: 10px; white-space: nowrap;">LIQUIDEZ CORRENTE:</td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <div style="display: flex; align-items: center; justify-content: center;">
+                                        <div style="display: flex; flex-direction: column; align-items: center;">
+                                            <div style="border-bottom: 1px solid #000; padding: 1px 5px;">AC</div>
+                                            <div style="padding: 1px 5px;">PC</div>
+                                        </div>
+                                        <div style="padding-left: 10px;">
+                                            = índice mínimo: (1)
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-weight: bold; padding-right: 10px; white-space: nowrap;">LIQUIDEZ GERAL:</td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <div style="display: flex; align-items: center; justify-content: center;">
+                                        <div style="display: flex; flex-direction: column; align-items: center;">
+                                            <div style="border-bottom: 1px solid #000; padding: 1px 5px;">AC + ARLP</div>
+                                            <div style="padding: 1px 5px;">PC + PELP</div>
+                                        </div>
+                                        <div style="padding-left: 10px;">
+                                            = índice mínimo: (1)
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-weight: bold; padding-right: 10px; white-space: nowrap;">GRAU DE ENDIVIDAMENTO:</td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <div style="display: flex; align-items: center; justify-content: center;">
+                                        <div style="display: flex; flex-direction: column; align-items: center;">
+                                            <div style="border-bottom: 1px solid #000; padding: 1px 5px;">PC + PELP</div>
+                                            <div style="padding: 1px 5px;">AT</div>
+                                        </div>
+                                        <div style="padding-left: 10px;">
+                                            = índice máximo: (1)
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <p class="subitem-4" style="margin-top: 10px;">Onde: AC = Ativo Circulante; AD = Ativo Disponível; ARLP = Ativo Realizável a Longo Prazo; AP = Ativo Permanente; AT = Ativo Total; PC = Passivo Circulante; PELP = Passivo Exigível a Longo Prazo; PL = Patrimônio Líquido.</p>
+                </div>
+                
+                <div id="texto-eco-simples" style="display: none;">
+                    <p class="subitem-4">certidão negativa de falência expedida pelo distribuidor da sede da pessoa jurídica.</p>
+                </div>
+
+
+				<p class="bold subitem-3">HABILITAÇÃO TÉCNICA</p>
+                
+                <div id="texto-tec-sim" style="display: none;">
+                     <div id="lista-tec-dinamica"></div>
+                </div>
+                
+                <div id="texto-tec-nao">
+                    <p class="subitem-4">Não será exigida comprovação de qualificação técnica para este certame.</p>
+                </div>
+
+
+                <p class="bold subitem-3">DAS AMOSTRAS</p>
+                
+                <div id="texto-amostra-sim" style="display: none;">
+                    <div id="lista-amostra-dinamica"></div>
+                </div>
+                
+                <div id="texto-amostra-nao">
+                    <p class="subitem-4">Não será exigida a apresentação de amostras.</p>
+                </div>
 
             <div id="edital-negociacao-julgamento" class="secao-numerada">
                 <p class="bold"><span class="nr-titulo"></span>. NEGOCIAÇÃO E JULGAMENTO</p>

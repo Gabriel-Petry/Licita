@@ -2,6 +2,17 @@ var Edital = {
     dados: {}
 };
 
+function atualizarAlturaAcordeaoPai(elementoFilho) {
+    if (!elementoFilho) return;
+    var content = elementoFilho.closest('.nav-group-content');
+
+    if (content && content.parentElement.classList.contains('active')) {
+        content.style.maxHeight = "none";
+        var novaAltura = content.scrollHeight;
+        content.style.maxHeight = novaAltura + "px";
+    }
+}
+
 window.atualizarPreview = function(elementId, valor) {
     var el = document.getElementById(elementId);
     if (el) {
@@ -29,7 +40,7 @@ window.atualizarTextoDisputa = function() {
             p3: "Na hipótese de não haver novos lances, a sessão pública será encerrada automaticamente.",
             p4: "Encerrada a sessão pública sem prorrogação automática pelo sistema, o pregoeiro poderá, assessorado pela equipe de apoio, admitir o reinício da etapa de envio de lances, em prol da consecução do melhor preço, mediante justificativa.",
             p5: null,
-            p6: null 
+            p6: null
         },
         aberto_fechado: {
             intro: "Será adotado o modo de disputa aberto e fechado, em que os licitantes apresentarão lances públicos e sucessivos, com lance final e fechado, observando as regras constantes no item 7.",
@@ -58,9 +69,11 @@ window.atualizarTextoDisputa = function() {
         if (el) {
             if (txt) {
                 el.innerText = txt;
-                el.style.display = 'block'; 
+                el.style.display = 'block';
                 el.style.backgroundColor = "#fff3cd";
-                setTimeout(function() { el.style.backgroundColor = "transparent"; }, 500);
+                setTimeout(function() {
+                    el.style.backgroundColor = "transparent";
+                }, 500);
             } else {
                 el.style.display = 'none';
                 el.innerText = '';
@@ -75,7 +88,7 @@ window.atualizarTextoDisputa = function() {
     set('md-p4', t.p4);
     set('md-p5', t.p5);
     set('md-p6', t.p6);
-    
+
     if (typeof NumeraTudo === 'function') NumeraTudo();
 };
 
@@ -238,7 +251,9 @@ window.limparTabela = function() {
         var container = document.getElementById('container-tabelas-itens');
         if (container) {
             var tbodies = container.querySelectorAll('tbody');
-            tbodies.forEach(function(tb) { tb.innerHTML = ""; });
+            tbodies.forEach(function(tb) {
+                tb.innerHTML = "";
+            });
         }
     }
 };
@@ -249,15 +264,22 @@ window.importarItens = function(input) {
         formData.append('arquivo', input.files[0]);
         document.body.style.cursor = 'wait';
 
-        fetch('/api_importar_itens.php', { method: 'POST', body: formData })
-            .then(function(response) { return response.json(); })
+        fetch('/api_importar_itens.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(response) {
+                return response.json();
+            })
             .then(function(data) {
                 document.body.style.cursor = 'default';
                 if (data.erro) {
                     alert('Erro: ' + data.erro);
                 } else if (data.itens && data.itens.length > 0) {
                     if (confirm("Encontramos " + data.itens.length + " itens. Deseja adicionar?")) {
-                        data.itens.forEach(function(item) { window.adicionarItemTabela(item); });
+                        data.itens.forEach(function(item) {
+                            window.adicionarItemTabela(item);
+                        });
                         alert("Concluído!");
                     }
                 } else {
@@ -274,16 +296,129 @@ window.importarItens = function(input) {
     }
 };
 
-// --- Inicialização ---
+window.adicionarItemDinamico = function(tipo) {
+    var inputId = 'input-txt-' + tipo;
+    var radiosName = 'nivel-' + tipo;
+    var containerId = 'lista-' + tipo + '-dinamica';
+
+    var inputElement = document.getElementById(inputId);
+    var texto = inputElement ? inputElement.value : '';
+
+    if (!texto || !texto.trim()) {
+        alert("Digite o texto da cláusula.");
+        return;
+    }
+
+    var nivel = 'paragrafo';
+    var radios = document.getElementsByName(radiosName);
+    for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) nivel = radios[i].value;
+    }
+
+    var container = document.getElementById(containerId);
+    if (!container) {
+        alert("Erro interno: Container destino não encontrado.");
+        return;
+    }
+
+    var p = document.createElement('p');
+    p.className = "subitem-4";
+    p.innerText = texto;
+
+    if (nivel === 'sub') {
+        p.style.marginLeft = "40px";
+    }
+
+    container.appendChild(p);
+
+    if (inputElement) inputElement.value = "";
+
+    atualizarAlturaAcordeaoPai(inputElement);
+
+    if (typeof NumeraTudo === 'function') NumeraTudo();
+};
+
+window.limparItensDinamicos = function(tipo) {
+    if (confirm("Deseja apagar todos os itens adicionados nesta seção?")) {
+        var containerId = 'lista-' + tipo + '-dinamica';
+        var container = document.getElementById(containerId);
+        if (container) container.innerHTML = "";
+
+        var inputElement = document.getElementById('input-txt-' + tipo);
+        atualizarAlturaAcordeaoPai(inputElement);
+    }
+};
+
+window.atualizarHabilitacao = function() {
+    var ecoRadios = document.getElementsByName('opt-hab-eco');
+    var ecoVal = 'complexa';
+    for (var i = 0; i < ecoRadios.length; i++)
+        if (ecoRadios[i].checked) ecoVal = ecoRadios[i].value;
+
+    if (ecoVal === 'simples') {
+        if (document.getElementById('texto-eco-simples')) document.getElementById('texto-eco-simples').style.display = 'block';
+        if (document.getElementById('texto-eco-complexa')) document.getElementById('texto-eco-complexa').style.display = 'none';
+    } else {
+        if (document.getElementById('texto-eco-simples')) document.getElementById('texto-eco-simples').style.display = 'none';
+        if (document.getElementById('texto-eco-complexa')) document.getElementById('texto-eco-complexa').style.display = 'block';
+    }
+
+    var tecRadios = document.getElementsByName('opt-hab-tec');
+    var tecVal = 'nao';
+    for (var i = 0; i < tecRadios.length; i++)
+        if (tecRadios[i].checked) tecVal = tecRadios[i].value;
+
+    var toolsTec = document.getElementById('tools-hab-tec');
+    var textoTecSim = document.getElementById('texto-tec-sim');
+    var textoTecNao = document.getElementById('texto-tec-nao');
+
+    if (tecVal === 'sim') {
+        if (toolsTec) toolsTec.style.display = 'block';
+        if (textoTecSim) textoTecSim.style.display = 'block';
+        if (textoTecNao) textoTecNao.style.display = 'none';
+    } else {
+        if (toolsTec) toolsTec.style.display = 'none';
+        if (textoTecSim) textoTecSim.style.display = 'none';
+        if (textoTecNao) textoTecNao.style.display = 'block';
+    }
+
+    var amoRadios = document.getElementsByName('opt-hab-amostra');
+    var amoVal = 'nao';
+    for (var i = 0; i < amoRadios.length; i++)
+        if (amoRadios[i].checked) amoVal = amoRadios[i].value;
+
+    var toolsAmo = document.getElementById('tools-hab-amostra');
+    var textoAmoSim = document.getElementById('texto-amostra-sim');
+    var textoAmoNao = document.getElementById('texto-amostra-nao');
+
+    if (amoVal === 'sim') {
+        if (toolsAmo) toolsAmo.style.display = 'block';
+        if (textoAmoSim) textoAmoSim.style.display = 'block';
+        if (textoAmoNao) textoAmoNao.style.display = 'none';
+    } else {
+        if (toolsAmo) toolsAmo.style.display = 'none';
+        if (textoAmoSim) textoAmoSim.style.display = 'none';
+        if (textoAmoNao) textoAmoNao.style.display = 'block';
+    }
+
+    var elReferencia = document.getElementById('eco-simples');
+    atualizarAlturaAcordeaoPai(elReferencia);
+
+    if (typeof NumeraTudo === 'function') NumeraTudo();
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     var dataStore = document.getElementById('edital-data-store');
-    if (dataStore) { Edital.dados = { ...dataStore.dataset }; }
+    if (dataStore) {
+        Edital.dados = { ...dataStore.dataset
+        };
+    }
 
     var btnAdd = document.getElementById('btn-add-item');
     if (btnAdd) {
         btnAdd.addEventListener('click', function(e) {
             e.preventDefault();
-            adicionarItemTabela();
+            window.adicionarItemTabela();
         });
     }
 
@@ -297,7 +432,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var inputImportar = document.getElementById('input-importar-planilha');
     if (inputImportar) {
-        inputImportar.addEventListener('change', function() { window.importarItens(this); });
+        inputImportar.addEventListener('change', function() {
+            window.importarItens(this);
+        });
     }
 
     var inputQtdLotes = document.getElementById('input-qtd-lotes');
@@ -309,10 +446,25 @@ document.addEventListener('DOMContentLoaded', function() {
     radiosJulgamento.forEach(function(radio) {
         radio.addEventListener('change', window.atualizarModoDisputa);
     });
-    
+
     var radiosDisputa = document.getElementsByName('input-modo-disputa');
     radiosDisputa.forEach(function(radio) {
         radio.addEventListener('change', window.atualizarTextoDisputa);
+    });
+
+    var radiosHabEco = document.getElementsByName('opt-hab-eco');
+    radiosHabEco.forEach(function(r) {
+        r.addEventListener('change', window.atualizarHabilitacao);
+    });
+
+    var radiosHabTec = document.getElementsByName('opt-hab-tec');
+    radiosHabTec.forEach(function(r) {
+        r.addEventListener('change', window.atualizarHabilitacao);
+    });
+
+    var radiosAmostra = document.getElementsByName('opt-hab-amostra');
+    radiosAmostra.forEach(function(r) {
+        r.addEventListener('change', window.atualizarHabilitacao);
     });
 
     if (typeof initNavAccordion === 'function') initNavAccordion();
@@ -321,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.atualizarModoDisputa();
     window.atualizarTextoDisputa();
+    window.atualizarHabilitacao();
 
     if (typeof NumeraTudo === 'function') NumeraTudo();
 
@@ -329,7 +482,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     var previewContainer = document.querySelector('.editor-preview');
     if (previewContainer) {
-        observer.observe(previewContainer, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+        observer.observe(previewContainer, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['class', 'style']
+        });
     }
 
     var formPdf = document.getElementById('pdf-form');
@@ -379,10 +536,19 @@ function initNavAccordion() {
         });
     });
 
+    var allDetails = document.querySelectorAll('details');
+    allDetails.forEach(function(det) {
+        det.addEventListener('toggle', function() {
+            atualizarAlturaAcordeaoPai(this);
+        });
+    });
+
     var links = document.querySelectorAll('.nav-item, .sub-item');
     links.forEach(function(link) {
         link.addEventListener('click', function() {
-            document.querySelectorAll('.nav-item, .sub-item').forEach(function(l) { l.classList.remove('active-link'); });
+            document.querySelectorAll('.nav-item, .sub-item').forEach(function(l) {
+                l.classList.remove('active-link');
+            });
             link.classList.add('active-link');
         });
     });
@@ -393,25 +559,34 @@ function NumeraTudo() {
     var cont1 = 1;
     secoes.forEach(function(secao) {
         var style = window.getComputedStyle(secao);
+
         if (style.display !== 'none' && !secao.classList.contains('hidden')) {
             var spanTitulo = secao.querySelector('.nr-titulo');
             if (spanTitulo) spanTitulo.textContent = cont1;
 
-            var cont2 = 0, cont3 = 0, cont4 = 0;
+            var cont2 = 0,
+                cont3 = 0,
+                cont4 = 0;
             var itens = secao.querySelectorAll('.subitem, .subitem-3, .subitem-4');
 
             itens.forEach(function(paragrafo) {
-                if (paragrafo.classList.contains('hidden') || paragrafo.style.display === 'none') return;
+                if (paragrafo.offsetParent === null) return;
 
                 var prefixo = "";
                 if (paragrafo.classList.contains('subitem')) {
-                    cont2++; cont3 = 0; cont4 = 0;
+                    cont2++;
+                    cont3 = 0;
+                    cont4 = 0;
                     prefixo = cont1 + "." + cont2 + ". ";
                 } else if (paragrafo.classList.contains('subitem-3')) {
-                    if (cont2 === 0) cont2 = 1; cont3++; cont4 = 0;
+                    if (cont2 === 0) cont2 = 1;
+                    cont3++;
+                    cont4 = 0;
                     prefixo = cont1 + "." + cont2 + "." + cont3 + ". ";
                 } else if (paragrafo.classList.contains('subitem-4')) {
-                    if (cont2 === 0) cont2 = 1; if (cont3 === 0) cont3 = 1; cont4++;
+                    if (cont2 === 0) cont2 = 1;
+                    if (cont3 === 0) cont3 = 1;
+                    cont4++;
                     prefixo = cont1 + "." + cont2 + "." + cont3 + "." + cont4 + ". ";
                 }
 
