@@ -82,5 +82,3 @@ HTML5
 - CSS3 (Modularizado em base.css, layout.css, components.css, etc.)
 
 - JavaScript (Vanilla): Usado para interatividade, chamadas AJAX (Fetch API) para os endpoints api_*.php e para a lógica dos módulos de fluxograma e montagem.
-
-- npm: package.json indica o uso de pacotes Node.js, possivelmente para ferramentas de desenvolvimento ou bibliotecas frontend.
