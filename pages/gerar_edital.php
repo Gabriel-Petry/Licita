@@ -46,8 +46,8 @@ render_header('Módulo Gerador de Edital', ['scripts' => $page_scripts]);
                         <label class="radio-label"><input id="sem_srp" type="radio" name="srp-radio" value="0"/> Não</label>
                     </div>
                 </div>
-                
             </div>
+
             <div class="form-group">
                 <label for="objeto">Objeto da licitação</label>
                 <textarea id="objeto" rows="4" name="objeto" placeholder="Insira o objeto da licitação" required ></textarea>
@@ -88,7 +88,6 @@ render_header('Módulo Gerador de Edital', ['scripts' => $page_scripts]);
             <p style="font-weight: bold; font-size: 1.1em;">Parâmetros da Licitação</p>
             
             <div class="param-grid">
-                
                 <div class="radio-box">
                     <p>Critério de Julgamento</p>
                     <div class="radio-group">
@@ -109,13 +108,18 @@ render_header('Módulo Gerador de Edital', ['scripts' => $page_scripts]);
                     <p>Valor Estimado</p>
                     <div class="radio-group">
                         <label class="radio-label">
-                            <input id="ck_valor2" type="radio" name="ck_valor" value="0" checked="checked" />
+                            <input id="radio_v_divulgado" type="radio" name="tipo_valor" value="divulgado" checked />
                             Divulgado
                         </label>
+                        <label class="radio-label">
+                            <input id="radio_v_sigiloso" type="radio" name="tipo_valor" value="sigiloso" />
+                            Sigiloso
+                        </label>
                     </div>
-                    <div id="isigiloso" class="form-group" style="margin-top: 10px; margin-bottom: 0;">
-                        <label for="valor" style="display: none;">Valor</label>
-                        <input id="valor" name="valor" type="text" placeholder="0,00" required />
+                    
+                    <div id="container_valor_estimado" class="form-group" style="margin-top: 10px; margin-bottom: 0;">
+                        <label for="input_valor_estimado" style="display: none;">Valor</label>
+                        <input id="input_valor_estimado" name="valor" type="text" placeholder="0,00" required />
                     </div>
                 </div>
             </div> 
@@ -127,69 +131,20 @@ render_header('Módulo Gerador de Edital', ['scripts' => $page_scripts]);
 </div>
 
 <style>
-    .card-content .row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    .card-content .col {
-        flex: 1;
-        min-width: 250px;
-    }
-    .card-content .param-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    .card-content .radio-box {
-        border: 1px solid var(--border-color, #ddd); 
-        background-color: var(--card-bg, #fff);
-        border-radius: 8px;
-        padding: 1rem;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-    }
-    .card-content .radio-box p {
-        font-weight: 500;
-        margin-top: 0;
-        margin-bottom: 0.75rem;
-    }
-    .card-content .radio-box .radio-group {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap; 
-        gap: 0.75rem 1rem; 
-    }
-    .card-content .radio-box .radio-group .radio-label {
-        display: inline-flex !important; 
-        width: auto !important; 
-        align-items: center !important; 
-        margin: 0 !important; 
-        padding: 0 !important; 
-        gap: 0.5rem; 
-        cursor: pointer;
-    }
+    .card-content .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .card-content .col { flex: 1; min-width: 250px; }
+    .card-content .param-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+    .card-content .radio-box { border: 1px solid var(--border-color, #ddd); background-color: var(--card-bg, #fff); border-radius: 8px; padding: 1rem; box-sizing: border-box; display: flex; flex-direction: column; }
+    .card-content .radio-box p { font-weight: 500; margin-top: 0; margin-bottom: 0.75rem; }
+    .card-content .radio-box .radio-group { display: flex; flex-direction: row; flex-wrap: wrap; gap: 0.75rem 1rem; }
+    .card-content .radio-box .radio-group .radio-label { display: inline-flex !important; width: auto !important; align-items: center !important; margin: 0 !important; padding: 0 !important; gap: 0.5rem; cursor: pointer; }
+    .card-content .radio-box .radio-label input[type="radio"] { width: auto !important; height: auto !important; margin: 0 !important; display: inline-block !important; flex-shrink: 0; }
     
-    .card-content .radio-box .radio-label input[type="radio"] {
-        width: auto !important;
-        height: auto !important;
-        margin: 0 !important;
-        display: inline-block !important;
-        flex-shrink: 0;
-    }
-    .card-content .radio-box #isigiloso {
-        margin-bottom: 0;
-        margin-top: auto;
-        padding-top: 10px;
-    }
-    @media (max-width: 768px) {
-        .card-content .param-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+    #container_valor_estimado { margin-bottom: 0; margin-top: auto; padding-top: 10px; }
+    
+    @media (max-width: 768px) { .card-content .param-grid { grid-template-columns: 1fr; } }
 </style>
+
 <?php
 render_footer();
 ?>

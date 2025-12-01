@@ -61,6 +61,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->commit();
             $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Demanda enviada com sucesso!'];
 
+        } elseif ($action === 'update_demanda') {
+            if ($demanda_id <= 0) throw new Exception('ID da demanda inválido.');
+
+            $pdo->beginTransaction();
+            $stmt_check = $pdo->prepare("SELECT status, usuario_id FROM demandas WHERE id = ?");
+            $stmt_check->execute([$demanda_id]);
+            $demanda_db = $stmt_check->fetch();
+
+            if (!$demanda_db) throw new Exception('Demanda não encontrada.');
+            
+            $podeEditar = ($demanda_db['usuario_id'] == $user['id'] || tem_permissao('pca.gerenciar'));
+            if (!$podeEditar) {
+                 throw new Exception('Acesso negado. Você não tem permissão para editar esta demanda.');
+            }
+            
+            if ($demanda_db['status'] !== 'Em Análise') {
+                 throw new Exception('Esta demanda não pode mais ser editada (Status: ' . $demanda_db['status'] . ').');
+            }
+
+            $data_previsao = (empty($_POST['mes_previsao']) || empty($_POST['ano_previsao'])) ? null : $_POST['ano_previsao'] . '-' . $_POST['mes_previsao'] . '-01';
+            
+            $sql_update_demanda = "UPDATE demandas SET 
+                descricao_necessidade = ?, justificativa_contratacao = ?, beneficios_esperados = ?, 
+                objeto_contratacao = ?, tipo_objeto = ?, data_previsao_licitacao = ?, 
+                grau_prioridade = ?, justificativa_prioridade = ?, vinculacao_dependencia = ?
+                WHERE id = ?";
+            $stmt_update = $pdo->prepare($sql_update_demanda);
+            $stmt_update->execute([
+                $_POST['descricao_necessidade'], $_POST['justificativa_contratacao'], $_POST['beneficios_esperados'],
+                $_POST['objeto_contratacao'], $_POST['tipo_objeto'], $data_previsao,
+                $_POST['grau_prioridade'], $_POST['justificativa_prioridade'], $_POST['vinculacao_dependencia'],
+                $demanda_id
+            ]);
+
+            $stmt_delete_itens = $pdo->prepare("DELETE FROM demanda_itens WHERE demanda_id = ?");
+            $stmt_delete_itens->execute([$demanda_id]);
+
+            $valor_total_estimado = 0;
+            if (isset($_POST['items']) && is_array($_POST['items'])) {
+                $sql_item = "INSERT INTO demanda_itens (demanda_id, descricao_item, quantidade, unidade_medida, valor_unitario_estimado) VALUES (?, ?, ?, ?, ?)";
+                $stmt_item = $pdo->prepare($sql_item);
+                foreach ($_POST['items'] as $item) {
+                    if (empty($item['descricao']) || empty($item['quantidade']) || empty($item['valor_unitario'])) continue;
+                    $quantidade = (float) str_replace(['.', ','], ['', '.'], $item['quantidade']);
+                    $valor_unitario = (float) str_replace(['.', ','], ['', '.'], $item['valor_unitario']);
+                    $valor_total_estimado += $quantidade * $valor_unitario;
+                    $stmt_item->execute([$demanda_id, $item['descricao'], $quantidade, $item['unidade'], $valor_unitario]);
+                }
+            }
+
+            $stmt_update_valor = $pdo->prepare("UPDATE demandas SET valor_total_estimado = ? WHERE id = ?");
+            $stmt_update_valor->execute([$valor_total_estimado, $demanda_id]);
+            
+            $pdo->commit();
+            $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Demanda atualizada com sucesso!'];
+
+
         } elseif ($action === 'change_status') {
             if (!tem_permissao('demandas.aprovar')) throw new Exception('Acesso negado.');
             
@@ -73,15 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Ação inválida.');
             }
         } elseif ($action === 'delete_demanda') {
-            // A permissão para excluir uma demanda será a mesma de gerir o PCA (administrador)
             if (!tem_permissao('pca.gerenciar')) throw new Exception('Acesso negado.');
 
             if ($demanda_id > 0) {
                 $pdo->beginTransaction();
-                // 1. Apagar os itens da demanda
                 $stmt_delete_itens = $pdo->prepare("DELETE FROM demanda_itens WHERE demanda_id = ?");
                 $stmt_delete_itens->execute([$demanda_id]);
-                // 2. Apagar a demanda
                 $stmt_delete_demanda = $pdo->prepare("DELETE FROM demandas WHERE id = ?");
                 $stmt_delete_demanda->execute([$demanda_id]);
                 $pdo->commit();
@@ -149,7 +203,16 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
                             <td><?= $demanda['data_previsao_licitacao'] ? date('m/Y', strtotime($demanda['data_previsao_licitacao'])) : '--' ?></td>
                             <td><span class="chip"><?= htmlspecialchars($demanda['status']) ?></span></td>
                             <td><?= htmlspecialchars($demanda['usuario_nome']) ?></td>
-                            <td><a href="#ver-demanda-<?= $demanda['id'] ?>" class="btn btn-sm">Ver Detalhes</a></td>
+                            <td>
+                                <a href="#ver-demanda-<?= $demanda['id'] ?>" class="btn btn-sm">Ver Detalhes</a>
+                                <?php 
+                                $podeEditar = $demanda['status'] === 'Em Análise' && 
+                                              ($demanda['usuario_id'] == $user['id'] || tem_permissao('pca.gerenciar'));
+                                if ($podeEditar): 
+                                ?>
+                                    <a href="#editar-demanda-<?= $demanda['id'] ?>" class="btn btn-sm warn">Editar</a>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                 <?php endforeach; else: ?>
                     <tr><td colspan="7" class="text-center" style="padding: 2rem;">Nenhuma demanda cadastrada para este plano.</td></tr>
@@ -159,11 +222,20 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
     </div>
 </div>
 
+<?php 
+$meses = [
+    '01' => 'Janeiro', '02' => 'Fevereiro', '03' => 'Março', '04' => 'Abril', 
+    '05' => 'Maio', '06' => 'Junho', '07' => 'Julho', '08' => 'Agosto', 
+    '09' => 'Setembro', '10' => 'Outubro', '11' => 'Novembro', '12' => 'Dezembro'
+];
+?>
+
 <?php if (tem_permissao('demandas.criar') && $plano['status'] === 'Aberto'): ?>
 <div id="nova-demanda-popup" class="popup-overlay">
     <div class="popup-card card">
         <a href="#" class="popup-close">&times;</a>
         <h2>Nova Demanda (DFD) para o PCA <?= htmlspecialchars($plano['ano_vigencia']) ?></h2>
+        
         <form method="post" class="form-popup" id="form-nova-demanda" action="/demandas?pca_id=<?= $pca_id ?>">
             <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>"><input type="hidden" name="action" value="create_demanda">
             <div class="popup-content">
@@ -172,7 +244,12 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
                     <div><label>Tipo de Objeto</label><select name="tipo_objeto" required><option value="Bem">Bem</option><option value="Serviço">Serviço</option><option value="Obra">Obra</option><option value="Solução de TI">Solução de TI</option></select></div>
                     <div>
                         <label>Mês Previsto para Contratação</label>
-                        <select name="mes_previsao"><option value="">-- Selecione --</option><option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select>
+                        <select name="mes_previsao">
+                            <option value="">-- Selecione --</option>
+                            <?php foreach ($meses as $num => $nome): ?>
+                            <option value="<?= $num ?>"><?= $nome ?></option>
+                            <?php endforeach; ?>
+                        </select>
                         <input type="hidden" name="ano_previsao" value="<?= htmlspecialchars($plano['ano_vigencia']) ?>">
                     </div>
                 </div>
@@ -182,7 +259,7 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
                         <label>Grau de Prioridade</label>
                         <select name="grau_prioridade" required>
                             <option value="Baixa">Baixa</option>
-                            <option value="Média">Média</option>
+                            <option value="Média" selected>Média</option>
                             <option value="Alta">Alta</option>
                         </select>
                     </div>
@@ -198,13 +275,16 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
                 </div>
 
                 <div>
-                    <label>Indicação de vinculação/dependência com outra contratação (Opcional)</label>
-                    <textarea name="vinculacao_dependencia" rows="2"></textarea>
+                    <label>Indicação de vinculação/dependência com outra contratação</label>
+                    <textarea name="vinculacao_dependencia" rows="2" required></textarea>
                 </div>
                 <hr style="margin: 2rem 0;">
                 <h4>Itens da Demanda</h4>
-                <div id="itens-container"></div>
-                <button type="button" id="add-item-btn" class="btn btn-sm" style="margin-top: 1rem;">+ Adicionar Item</button>
+                
+                <div class="itens-container" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    </div>
+                <button type="button" class="add-item-btn btn btn-sm" style="margin-top: 1rem;">+ Adicionar Item</button>
+                
             </div>
             <div class="form-actions"><button class="btn good" type="submit">Enviar Demanda</button></div>
         </form>
@@ -298,6 +378,129 @@ render_header('Demandas do PCA ' . $plano['ano_vigencia'], ['scripts' => ['/js/d
         </div>
     </div>
 </div>
-<?php endforeach; ?>
 
-<?php render_footer(); ?>
+<?php 
+$podeEditar = $demanda['status'] === 'Em Análise' && 
+              ($demanda['usuario_id'] == $user['id'] || tem_permissao('pca.gerenciar'));
+
+if ($podeEditar): 
+    $mes_previsao = $demanda['data_previsao_licitacao'] ? date('m', strtotime($demanda['data_previsao_licitacao'])) : '';
+?>
+<div id="editar-demanda-<?= $demanda['id'] ?>" class="popup-overlay">
+    <div class="popup-card card">
+        <a href="#" class="popup-close">&times;</a>
+        <h2>Editar Demanda (DFD): <?= htmlspecialchars($demanda['objeto_contratacao']) ?></h2>
+        
+        <form method="post" class="form-popup" action="/demandas?pca_id=<?= $pca_id ?>">
+            <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>">
+            <input type="hidden" name="action" value="update_demanda">
+            <input type="hidden" name="demanda_id" value="<?= $demanda['id'] ?>">
+            
+            <div class="popup-content">
+                <div class="grid grid-3">
+                    <div>
+                        <label>Objeto da Contratação (Resumido)</label>
+                        <input name="objeto_contratacao" required value="<?= htmlspecialchars($demanda['objeto_contratacao']) ?>">
+                    </div>
+                    <div>
+                        <label>Tipo de Objeto</label>
+                        <select name="tipo_objeto" required>
+                            <option value="Bem" <?= $demanda['tipo_objeto'] == 'Bem' ? 'selected' : '' ?>>Bem</option>
+                            <option value="Serviço" <?= $demanda['tipo_objeto'] == 'Serviço' ? 'selected' : '' ?>>Serviço</option>
+                            <option value="Obra" <?= $demanda['tipo_objeto'] == 'Obra' ? 'selected' : '' ?>>Obra</option>
+                            <option value="Solução de TI" <?= $demanda['tipo_objeto'] == 'Solução de TI' ? 'selected' : '' ?>>Solução de TI</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Mês Previsto para Contratação</label>
+                        <select name="mes_previsao">
+                            <option value="">-- Selecione --</option>
+                            <?php foreach ($meses as $num => $nome): ?>
+                            <option value="<?= $num ?>" <?= $num == $mes_previsao ? 'selected' : '' ?>><?= $nome ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="hidden" name="ano_previsao" value="<?= htmlspecialchars($plano['ano_vigencia']) ?>">
+                    </div>
+                </div>
+
+                <div class="grid grid-2" style="margin-top: 1rem;">
+                    <div>
+                        <label>Grau de Prioridade</label>
+                        <select name="grau_prioridade" required>
+                            <option value="Baixa" <?= $demanda['grau_prioridade'] == 'Baixa' ? 'selected' : '' ?>>Baixa</option>
+                            <option value="Média" <?= $demanda['grau_prioridade'] == 'Média' ? 'selected' : '' ?>>Média</option>
+                            <option value="Alta" <?= $demanda['grau_prioridade'] == 'Alta' ? 'selected' : '' ?>>Alta</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Justificativa da Prioridade</label>
+                        <textarea name="justificativa_prioridade" rows="2" required><?= htmlspecialchars($demanda['justificativa_prioridade']) ?></textarea>
+                    </div>
+                </div>
+                <div>
+                    <label>Descrição Detalhada do Objeto</label>
+                    <textarea name="descricao_necessidade" rows="3" required><?= htmlspecialchars($demanda['descricao_necessidade']) ?></textarea>
+                </div>
+                <div class="grid grid-2">
+                    <div>
+                        <label>Justificativa da Necessidade</label>
+                        <textarea name="justificativa_contratacao" rows="3" required><?= htmlspecialchars($demanda['justificativa_contratacao']) ?></textarea>
+                    </div>
+                    <div>
+                        <label>Benefícios Esperados</label>
+                        <textarea name="beneficios_esperados" rows="3" required><?= htmlspecialchars($demanda['beneficios_esperados']) ?></textarea>
+                    </div>
+                </div>
+
+                <div>
+                    <label>Indicação de vinculação/dependência com outra contratação (Opcional)</label>
+                    <textarea name="vinculacao_dependencia" rows="2"><?= htmlspecialchars($demanda['vinculacao_dependencia']) ?></textarea>
+                </div>
+                <hr style="margin: 2rem 0;">
+                <h4>Itens da Demanda</h4>
+                
+                <div class="itens-container" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <?php
+                    foreach ($itens as $index => $item): 
+                    ?>
+                    <div class="demanda-item" style="padding: 1rem; border: 1px solid var(--cor-borda); border-radius: var(--raio-borda); margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <strong>Item <?= $index + 1 ?></strong>
+                            <button type="button" class="btn warn btn-sm remove-item-btn">Remover</button>
+                        </div>
+                        <label>Descrição do Item</label>
+                        <textarea name="items[<?= $index ?>][descricao]" rows="2" required><?= htmlspecialchars($item['descricao_item']) ?></textarea>
+                        <div class="grid grid-3" style="margin-top: 1rem;">
+                            <div>
+                                <label>Quantidade</label>
+                                <input type="text" name="items[<?= $index ?>][quantidade]" class="numeric-mask" value="<?= number_format($item['quantidade'], 2, ',', '.') ?>" required>
+                            </div>
+                            <div>
+                                <label>Unidade de Medida</label>
+                                <input name="items[<?= $index ?>][unidade]" value="<?= htmlspecialchars($item['unidade_medida']) ?>" required placeholder="Ex: Un, Cx, Kg...">
+                            </div>
+                            <div>
+                                <label>Valor Unitário Estimado (R$)</label>
+                                <input type="text" name="items[<?= $index ?>][valor_unitario]" class="numeric-mask" value="<?= number_format($item['valor_unitario_estimado'], 2, ',', '.') ?>" required>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <button type="button" class="add-item-btn btn btn-sm" style="margin-top: 1rem;">+ Adicionar Item</button>
+            </div>
+            <div class="form-actions">
+                <button class="btn good" type="submit">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+<?php 
+endif;
+endforeach;
+?>
+
+<?php 
+render_footer(); 
+?>

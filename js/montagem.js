@@ -25,11 +25,22 @@ window.atualizarTextoDisputa = function() {
 
     var radios = document.getElementsByName('input-modo-disputa');
     var modo = 'aberto';
+    var textoHeader = 'Aberto';
+
     for (var i = 0; i < radios.length; i++) {
         if (radios[i].checked) {
             modo = radios[i].value;
+            var label = document.querySelector('label[for="' + radios[i].id + '"]');
+            if (label) {
+                textoHeader = label.innerText.trim();
+            }
             break;
         }
+    }
+
+    var elHeader = document.getElementById('view-modo-disputa-header');
+    if (elHeader) {
+        elHeader.innerText = textoHeader;
     }
 
     var textos = {
@@ -131,6 +142,11 @@ window.atualizarModoDisputa = function() {
         if (divQtd) divQtd.style.display = 'none';
         if (divSelDestino) divSelDestino.style.display = 'none';
         window.gerarTabelaUnica();
+    }
+
+    var elReferencia = document.getElementById('opt-item');
+    if (typeof atualizarAlturaAcordeaoPai === 'function') {
+        atualizarAlturaAcordeaoPai(elReferencia);
     }
 };
 
@@ -296,59 +312,6 @@ window.importarItens = function(input) {
     }
 };
 
-window.adicionarItemDinamico = function(tipo) {
-    var inputId = 'input-txt-' + tipo;
-    var radiosName = 'nivel-' + tipo;
-    var containerId = 'lista-' + tipo + '-dinamica';
-
-    var inputElement = document.getElementById(inputId);
-    var texto = inputElement ? inputElement.value : '';
-
-    if (!texto || !texto.trim()) {
-        alert("Digite o texto da cláusula.");
-        return;
-    }
-
-    var nivel = 'paragrafo';
-    var radios = document.getElementsByName(radiosName);
-    for (var i = 0; i < radios.length; i++) {
-        if (radios[i].checked) nivel = radios[i].value;
-    }
-
-    var container = document.getElementById(containerId);
-    if (!container) {
-        alert("Erro interno: Container destino não encontrado.");
-        return;
-    }
-
-    var p = document.createElement('p');
-    p.className = "subitem-4";
-    p.innerText = texto;
-
-    if (nivel === 'sub') {
-        p.style.marginLeft = "40px";
-    }
-
-    container.appendChild(p);
-
-    if (inputElement) inputElement.value = "";
-
-    atualizarAlturaAcordeaoPai(inputElement);
-
-    if (typeof NumeraTudo === 'function') NumeraTudo();
-};
-
-window.limparItensDinamicos = function(tipo) {
-    if (confirm("Deseja apagar todos os itens adicionados nesta seção?")) {
-        var containerId = 'lista-' + tipo + '-dinamica';
-        var container = document.getElementById(containerId);
-        if (container) container.innerHTML = "";
-
-        var inputElement = document.getElementById('input-txt-' + tipo);
-        atualizarAlturaAcordeaoPai(inputElement);
-    }
-};
-
 window.atualizarHabilitacao = function() {
     var ecoRadios = document.getElementsByName('opt-hab-eco');
     var ecoVal = 'complexa';
@@ -369,16 +332,24 @@ window.atualizarHabilitacao = function() {
         if (tecRadios[i].checked) tecVal = tecRadios[i].value;
 
     var toolsTec = document.getElementById('tools-hab-tec');
+    var listaTec = document.getElementById('lista-tec-dinamica');
     var textoTecSim = document.getElementById('texto-tec-sim');
     var textoTecNao = document.getElementById('texto-tec-nao');
 
     if (tecVal === 'sim') {
         if (toolsTec) toolsTec.style.display = 'block';
         if (textoTecSim) textoTecSim.style.display = 'block';
+        if (listaTec) listaTec.style.display = 'block';
         if (textoTecNao) textoTecNao.style.display = 'none';
+
+        var inputQtdTec = document.getElementById('input-qtd-tec');
+        if (inputQtdTec && inputQtdTec.value > 0 && (!listaTec.innerHTML || listaTec.innerHTML.trim() === "")) {
+            window.gerarListaTecnicaAmostra('tec');
+        }
     } else {
         if (toolsTec) toolsTec.style.display = 'none';
         if (textoTecSim) textoTecSim.style.display = 'none';
+        if (listaTec) listaTec.style.display = 'none';
         if (textoTecNao) textoTecNao.style.display = 'block';
     }
 
@@ -388,16 +359,24 @@ window.atualizarHabilitacao = function() {
         if (amoRadios[i].checked) amoVal = amoRadios[i].value;
 
     var toolsAmo = document.getElementById('tools-hab-amostra');
+    var listaAmo = document.getElementById('lista-amostra-dinamica');
     var textoAmoSim = document.getElementById('texto-amostra-sim');
     var textoAmoNao = document.getElementById('texto-amostra-nao');
 
     if (amoVal === 'sim') {
         if (toolsAmo) toolsAmo.style.display = 'block';
         if (textoAmoSim) textoAmoSim.style.display = 'block';
+        if (listaAmo) listaAmo.style.display = 'block';
         if (textoAmoNao) textoAmoNao.style.display = 'none';
+
+        var inputQtdAmo = document.getElementById('input-qtd-amostra');
+        if (inputQtdAmo && inputQtdAmo.value > 0 && (!listaAmo.innerHTML || listaAmo.innerHTML.trim() === "")) {
+            window.gerarListaTecnicaAmostra('amostra');
+        }
     } else {
         if (toolsAmo) toolsAmo.style.display = 'none';
         if (textoAmoSim) textoAmoSim.style.display = 'none';
+        if (listaAmo) listaAmo.style.display = 'none';
         if (textoAmoNao) textoAmoNao.style.display = 'block';
     }
 
@@ -406,6 +385,176 @@ window.atualizarHabilitacao = function() {
 
     if (typeof NumeraTudo === 'function') NumeraTudo();
 };
+
+window.gerarListaTecnicaAmostra = function(tipo) {
+    var inputQtd = document.getElementById('input-qtd-' + tipo);
+    var qtd = parseInt(inputQtd ? inputQtd.value : 0) || 0;
+
+    var sidebarContainer = document.getElementById('sidebar-' + tipo + '-container');
+    var previewContainer = document.getElementById('lista-' + tipo + '-dinamica');
+
+    if (!sidebarContainer || !previewContainer) return;
+
+    sidebarContainer.innerHTML = "";
+    previewContainer.innerHTML = "";
+
+    for (var i = 1; i <= qtd; i++) {
+        var wrapper = document.createElement('div');
+        wrapper.className = "mb-2 p-2";
+        wrapper.style.border = "1px dashed #ccc";
+        wrapper.style.borderRadius = "4px";
+        wrapper.style.backgroundColor = "#fdfdfd";
+
+        var label = document.createElement('label');
+        label.innerText = "Item " + i + ":";
+        label.style.fontWeight = "bold";
+        label.style.fontSize = "0.85em";
+
+        var textarea = document.createElement('textarea');
+        textarea.rows = 2;
+        textarea.className = "br-textarea small";
+        textarea.style.width = "100%";
+        textarea.placeholder = "Descreva a exigência...";
+        textarea.dataset.itemId = i;
+
+        var divCheck = document.createElement('div');
+        divCheck.style.marginTop = "5px";
+        var checkbox = document.createElement('input');
+        checkbox.type = "checkbox";
+        checkbox.id = "check-sub-" + tipo + "-" + i;
+        checkbox.dataset.itemId = i;
+
+        var labelCheck = document.createElement('label');
+        labelCheck.htmlFor = "check-sub-" + tipo + "-" + i;
+        labelCheck.innerText = " É subparágrafo?";
+        labelCheck.style.fontSize = "0.8em";
+        labelCheck.style.marginLeft = "5px";
+        labelCheck.style.fontWeight = "normal";
+
+        divCheck.appendChild(checkbox);
+        divCheck.appendChild(labelCheck);
+
+        var pPreview = document.createElement('p');
+        pPreview.className = "subitem-4";
+        pPreview.id = "view-" + tipo + "-" + i;
+        pPreview.innerText = "_________________________________";
+
+        textarea.addEventListener('input', function(e) {
+            var id = e.target.dataset.itemId;
+            var el = document.getElementById('view-' + tipo + '-' + id);
+            if(el) {
+                el.innerText = e.target.value || "_________________________________";
+                if (typeof NumeraTudo === 'function') NumeraTudo();
+            }
+        });
+
+        checkbox.addEventListener('change', function(e) {
+            var id = e.target.dataset.itemId;
+            var el = document.getElementById('view-' + tipo + '-' + id);
+            if(el) {
+                if (e.target.checked) {
+                    el.className = "subitem-5";
+                    el.style.marginLeft = "80px";
+                } else {
+                    el.className = "subitem-4";
+                    el.style.marginLeft = "";
+                }
+                if (typeof NumeraTudo === 'function') NumeraTudo();
+            }
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(textarea);
+        wrapper.appendChild(divCheck);
+        sidebarContainer.appendChild(wrapper);
+
+        previewContainer.appendChild(pPreview);
+    }
+
+    if (typeof atualizarAlturaAcordeaoPai === 'function') {
+        atualizarAlturaAcordeaoPai(sidebarContainer);
+    }
+    if (typeof NumeraTudo === 'function') NumeraTudo();
+};
+
+window.gerarCamposDotacao = function() {
+    var inputQtd = document.getElementById('input-qtd-dotacoes');
+    var qtd = parseInt(inputQtd ? inputQtd.value : 0) || 0;
+
+    var sidebarContainer = document.getElementById('sidebar-dotacoes-container');
+    var previewContainer = document.getElementById('container-dotacoes');
+
+    if (!sidebarContainer || !previewContainer) return;
+
+    sidebarContainer.innerHTML = "";
+    previewContainer.innerHTML = "";
+
+    for (var i = 1; i <= qtd; i++) {
+        var divInput = document.createElement('div');
+        divInput.className = "br-textarea small mb-2";
+
+        var label = document.createElement('label');
+        label.innerText = "Dotação " + i + ":";
+
+        var textarea = document.createElement('textarea');
+        textarea.rows = 2;
+        textarea.placeholder = "Ex: Órgão: 02.00 - Secretaria... Funcional: 04.122...";
+        textarea.dataset.dotacaoId = i;
+
+        var pPreview = document.createElement('p');
+        pPreview.className = "subitem-3";
+        pPreview.id = "view-dotacao-" + i;
+        pPreview.innerText = "_________________________________________________";
+
+        textarea.addEventListener('input', function(e) {
+            var id = e.target.dataset.dotacaoId;
+            var el = document.getElementById('view-dotacao-' + id);
+            if(el) {
+                el.innerText = e.target.value || "_________________________________________________";
+                if (typeof NumeraTudo === 'function') NumeraTudo();
+            }
+        });
+
+        divInput.appendChild(label);
+        divInput.appendChild(textarea);
+        sidebarContainer.appendChild(divInput);
+
+        previewContainer.appendChild(pPreview);
+    }
+
+    if (typeof atualizarAlturaAcordeaoPai === 'function') {
+        atualizarAlturaAcordeaoPai(sidebarContainer);
+    }
+
+    if (typeof NumeraTudo === 'function') NumeraTudo();
+};
+
+window.atualizarVistoria = function() {
+    var radios = document.getElementsByName('opt-vistoria');
+    var val = 'nao';
+    for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) val = radios[i].value;
+    }
+
+    var tools = document.getElementById('tools-vistoria');
+    var texto = document.getElementById('texto-vistoria');
+
+    if (val === 'sim') {
+        if (tools) tools.style.display = 'block';
+        if (texto) texto.style.display = 'block';
+    } else {
+        if (tools) tools.style.display = 'none';
+        if (texto) texto.style.display = 'none';
+    }
+
+    var elRef = document.getElementById('vistoria-sim');
+    if (typeof atualizarAlturaAcordeaoPai === 'function') {
+        atualizarAlturaAcordeaoPai(elRef);
+    }
+
+    if (typeof NumeraTudo === 'function') NumeraTudo();
+};
+
 
 document.addEventListener('DOMContentLoaded', function() {
     var dataStore = document.getElementById('edital-data-store');
@@ -442,6 +591,21 @@ document.addEventListener('DOMContentLoaded', function() {
         inputQtdLotes.addEventListener('input', window.gerarEstruturaLotes);
     }
 
+    var inputQtdDotacoes = document.getElementById('input-qtd-dotacoes');
+    if (inputQtdDotacoes) {
+        inputQtdDotacoes.addEventListener('input', window.gerarCamposDotacao);
+    }
+
+    var inputQtdTec = document.getElementById('input-qtd-tec');
+    if (inputQtdTec) {
+        inputQtdTec.addEventListener('input', function(){ window.gerarListaTecnicaAmostra('tec'); });
+    }
+
+    var inputQtdAmo = document.getElementById('input-qtd-amostra');
+    if (inputQtdAmo) {
+        inputQtdAmo.addEventListener('input', function(){ window.gerarListaTecnicaAmostra('amostra'); });
+    }
+
     var radiosJulgamento = document.getElementsByName('input-tipo-jul');
     radiosJulgamento.forEach(function(radio) {
         radio.addEventListener('change', window.atualizarModoDisputa);
@@ -467,6 +631,11 @@ document.addEventListener('DOMContentLoaded', function() {
         r.addEventListener('change', window.atualizarHabilitacao);
     });
 
+    var radiosVistoria = document.getElementsByName('opt-vistoria');
+    radiosVistoria.forEach(function(r) {
+        r.addEventListener('change', window.atualizarVistoria);
+    });
+
     if (typeof initNavAccordion === 'function') initNavAccordion();
     if (typeof initLiveEdit === 'function') initLiveEdit();
     if (typeof initReverseLiveEdit === 'function') initReverseLiveEdit();
@@ -474,6 +643,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.atualizarModoDisputa();
     window.atualizarTextoDisputa();
     window.atualizarHabilitacao();
+
+    window.gerarCamposDotacao();
+    window.atualizarVistoria();
+
+    if(inputQtdTec && inputQtdTec.value > 0) window.gerarListaTecnicaAmostra('tec');
+    if(inputQtdAmo && inputQtdAmo.value > 0) window.gerarListaTecnicaAmostra('amostra');
 
     if (typeof NumeraTudo === 'function') NumeraTudo();
 
@@ -566,8 +741,9 @@ function NumeraTudo() {
 
             var cont2 = 0,
                 cont3 = 0,
-                cont4 = 0;
-            var itens = secao.querySelectorAll('.subitem, .subitem-3, .subitem-4');
+                cont4 = 0,
+                cont5 = 0;
+            var itens = secao.querySelectorAll('.subitem, .subitem-3, .subitem-4, .subitem-5');
 
             itens.forEach(function(paragrafo) {
                 if (paragrafo.offsetParent === null) return;
@@ -577,17 +753,26 @@ function NumeraTudo() {
                     cont2++;
                     cont3 = 0;
                     cont4 = 0;
+                    cont5 = 0;
                     prefixo = cont1 + "." + cont2 + ". ";
                 } else if (paragrafo.classList.contains('subitem-3')) {
                     if (cont2 === 0) cont2 = 1;
                     cont3++;
                     cont4 = 0;
+                    cont5 = 0;
                     prefixo = cont1 + "." + cont2 + "." + cont3 + ". ";
                 } else if (paragrafo.classList.contains('subitem-4')) {
                     if (cont2 === 0) cont2 = 1;
                     if (cont3 === 0) cont3 = 1;
                     cont4++;
+                    cont5 = 0;
                     prefixo = cont1 + "." + cont2 + "." + cont3 + "." + cont4 + ". ";
+                } else if (paragrafo.classList.contains('subitem-5')) {
+                    if (cont2 === 0) cont2 = 1;
+                    if (cont3 === 0) cont3 = 1;
+                    if (cont4 === 0) cont4 = 1;
+                    cont5++;
+                    prefixo = cont1 + "." + cont2 + "." + cont3 + "." + cont4 + "." + cont5 + ". ";
                 }
 
                 var spanNumero = paragrafo.querySelector('.nr-auto');

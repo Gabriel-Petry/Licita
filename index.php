@@ -1,5 +1,5 @@
 <?php
-
+    
 require_once __DIR__ . '/includes/auth.php';
 
 $request_uri = strtok($_SERVER['REQUEST_URI'], '?');
@@ -32,8 +32,9 @@ $routes = [
     '/fluxograma/editor' => 'fluxograma.php',
     '/salvar-fluxograma' => 'salvar_fluxograma.php',
     '/fluxogramas' => 'fluxogramas_listar.php',
-    '/menu' => 'sem_permissao.php'
-    
+    '/menu' => 'sem_permissao.php',
+    '/gerar_edital' => 'gerar_edital.php',
+    '/montagem' => 'montagem.php',
 ];
 
 if (array_key_exists($route, $routes)) {

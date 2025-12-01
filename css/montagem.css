@@ -369,6 +369,13 @@ body {
     font-size: 0.95em;
 }
 
+.subitem-5 {
+    margin-bottom: 10px;
+    text-align: justify;
+    margin-left: 60px;
+    font-size: 0.95em;
+}
+
 .toggle-options-wrapper {
     display: flex;
     background-color: #eef2f5;

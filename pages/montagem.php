@@ -26,6 +26,13 @@ $requisicao_num = htmlspecialchars($_POST['requisicao'] ?? '', ENT_QUOTES, 'UTF-
 $pregoeiro_nome = htmlspecialchars($_POST['pregoeiro'] ?? '', ENT_QUOTES, 'UTF-8');
 $valor_estimado = htmlspecialchars($_POST['valor'] ?? '0,00', ENT_QUOTES, 'UTF-8');
 
+$tipo_valor = htmlspecialchars($_POST['tipo_valor'] ?? 'divulgado', ENT_QUOTES, 'UTF-8');
+if ($tipo_valor === 'sigiloso') {
+    $texto_valor_final = "SIGILOSO";
+} else {
+    $texto_valor_final = "R$ " . $valor_estimado;
+}
+
 $modalidade_val = htmlspecialchars($_POST['modalidade'] ?? '1', ENT_QUOTES, 'UTF-8');
 $srp_val = htmlspecialchars($_POST['srp-radio'] ?? '0', ENT_QUOTES, 'UTF-8');
 $cj_val = htmlspecialchars($_POST['cj'] ?? '1', ENT_QUOTES, 'UTF-8');
@@ -186,7 +193,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                                 <label for="opt-disp-aberto-fechado">Aberto/Fechado</label>
 
                                 <input type="radio" id="opt-disp-fechado" name="input-modo-disputa" value="fechado" onchange="atualizarTextoDisputa()">
-                                <label for="opt-disp-fechado">Fechado</label>
+                                <label for="opt-disp-fechado">Fechado/Aberto</label>
                             </div>
 
                             <div style="text-align: center; margin-top: 15px;">
@@ -195,7 +202,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                         </div>
                     </div>
 
-					<div class="nav-group">
+                    <div class="nav-group">
                         <div class="nav-group-header">
                             <span class="titulo-grupo" data-target="edital-propostas-lances-habilitacao">PROPOSTAS E HABILITAÇÃO</span>
                             <i class="fas fa-chevron-down"></i>
@@ -210,10 +217,10 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                                 <div class="accordion-body">
                                     <label style="font-size: 0.85em; display: block; margin-bottom: 5px;">Tipo de Exigência:</label>
                                     <div class="toggle-options-wrapper">
-                                        <input type="radio" id="eco-simples" name="opt-hab-eco" value="simples" onchange="atualizarHabilitacao(this)">
+                                        <input type="radio" id="eco-simples" name="opt-hab-eco" value="simples" onchange="atualizarHabilitacao()">
                                         <label for="eco-simples">Simples</label>
 
-                                        <input type="radio" id="eco-complexa" name="opt-hab-eco" value="complexa" checked onchange="atualizarHabilitacao(this)">
+                                        <input type="radio" id="eco-complexa" name="opt-hab-eco" value="complexa" checked onchange="atualizarHabilitacao()">
                                         <label for="eco-complexa">Complexa</label>
                                     </div>
                                 </div>
@@ -223,35 +230,21 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                                 <summary>Habilitação Técnica</summary>
                                 <div class="accordion-body">
                                     <label style="font-size: 0.85em; display: block; margin-bottom: 5px;">Será Exigida?</label>
-                                    <div class="toggle-options-wrapper">
-                                        <input type="radio" id="tec-sim" name="opt-hab-tec" value="sim" onchange="atualizarHabilitacao(this)">
+                                    <div class="toggle-options-wrapper mb-3">
+                                        <input type="radio" id="tec-sim" name="opt-hab-tec" value="sim" onchange="atualizarHabilitacao()">
                                         <label for="tec-sim">Sim</label>
 
-                                        <input type="radio" id="tec-nao" name="opt-hab-tec" value="nao" checked onchange="atualizarHabilitacao(this)">
+                                        <input type="radio" id="tec-nao" name="opt-hab-tec" value="nao" checked onchange="atualizarHabilitacao()">
                                         <label for="tec-nao">Não</label>
                                     </div>
 
-                                    <div id="tools-hab-tec" class="tools-box" style="display:none;">
-                                        <label>Adicionar Cláusula:</label>
-                                        <textarea id="input-txt-tec" rows="3" placeholder="Ex: A empresa deverá apresentar atestado de..."></textarea>
-                                        
-                                        <div class="radio-toggle-group">
-                                            <label>
-                                                <input type="radio" name="nivel-tec" value="paragrafo" checked> Parágrafo
-                                            </label>
-                                            <label>
-                                                <input type="radio" name="nivel-tec" value="sub"> Subparágrafo
-                                            </label>
+                                    <div id="tools-hab-tec" style="display:none;">
+                                        <hr style="margin: 10px 0; border-color: #eee;">
+                                        <div class="br-input small mb-2">
+                                            <label style="font-weight: bold;">Qtd. de Itens:</label>
+                                            <input type="number" id="input-qtd-tec" class="br-input small" value="1" min="1" oninput="gerarListaTecnicaAmostra('tec')">
                                         </div>
-
-                                        <div class="btn-row">
-                                            <button type="button" onclick="adicionarItemDinamico('tec', this)" class="br-button primary small" style="flex: 2;">
-                                                <i class="fas fa-plus-circle"></i> Adicionar
-                                            </button>
-                                            <button type="button" onclick="limparItensDinamicos('tec', this)" class="br-button secondary small" style="flex: 1;" title="Limpar tudo">
-                                                <i class="fas fa-eraser"></i>
-                                            </button>
-                                        </div>
+                                        <div id="sidebar-tec-container"></div>
                                     </div>
                                 </div>
                             </details>
@@ -260,38 +253,46 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                                 <summary>Amostras</summary>
                                 <div class="accordion-body">
                                     <label style="font-size: 0.85em; display: block; margin-bottom: 5px;">Serão Exigidas?</label>
-                                    <div class="toggle-options-wrapper">
-                                        <input type="radio" id="amostra-sim" name="opt-hab-amostra" value="sim" onchange="atualizarHabilitacao(this)">
+                                    <div class="toggle-options-wrapper mb-3">
+                                        <input type="radio" id="amostra-sim" name="opt-hab-amostra" value="sim" onchange="atualizarHabilitacao()">
                                         <label for="amostra-sim">Sim</label>
 
-                                        <input type="radio" id="amostra-nao" name="opt-hab-amostra" value="nao" checked onchange="atualizarHabilitacao(this)">
+                                        <input type="radio" id="amostra-nao" name="opt-hab-amostra" value="nao" checked onchange="atualizarHabilitacao()">
                                         <label for="amostra-nao">Não</label>
                                     </div>
 
-                                    <div id="tools-hab-amostra" class="tools-box" style="display:none;">
-                                        <label>Adicionar Cláusula:</label>
-                                        <textarea id="input-txt-amostra" rows="3" placeholder="Ex: O prazo para entrega da amostra será de..."></textarea>
-                                        
-                                        <div class="radio-toggle-group">
-                                            <label>
-                                                <input type="radio" name="nivel-amostra" value="paragrafo" checked> Parágrafo
-                                            </label>
-                                            <label>
-                                                <input type="radio" name="nivel-amostra" value="sub"> Subparágrafo
-                                            </label>
+                                    <div id="tools-hab-amostra" style="display:none;">
+                                        <hr style="margin: 10px 0; border-color: #eee;">
+                                        <div class="br-input small mb-2">
+                                            <label style="font-weight: bold;">Qtd. de Itens:</label>
+                                            <input type="number" id="input-qtd-amostra" class="br-input small" value="1" min="1" oninput="gerarListaTecnicaAmostra('amostra')">
                                         </div>
-
-                                        <div class="btn-row">
-                                            <button type="button" onclick="adicionarItemDinamico('amostra', this)" class="br-button primary small" style="flex: 2;">
-                                                <i class="fas fa-plus-circle"></i> Adicionar
-                                            </button>
-                                            <button type="button" onclick="limparItensDinamicos('amostra', this)" class="br-button secondary small" style="flex: 1;" title="Limpar tudo">
-                                                <i class="fas fa-eraser"></i>
-                                            </button>
-                                        </div>
+                                        <div id="sidebar-amostra-container"></div>
                                     </div>
                                 </div>
                             </details>
+
+                            <details class="nested-accordion">
+                            <summary>Vistoria</summary>
+                            <div class="accordion-body">
+                                <label style="font-size: 0.85em; display: block; margin-bottom: 5px;">Exigir Vistoria?</label>
+                                <div class="toggle-options-wrapper mb-3">
+                                    <input type="radio" id="vistoria-sim" name="opt-vistoria" value="sim" onchange="atualizarVistoria()">
+                                    <label for="vistoria-sim">Sim</label>
+
+                                    <input type="radio" id="vistoria-nao" name="opt-vistoria" value="nao" checked onchange="atualizarVistoria()">
+                                    <label for="vistoria-nao">Não</label>
+                                </div>
+
+                                <div id="tools-vistoria" style="display:none;">
+                                    <hr style="margin: 10px 0; border-color: #eee;">
+                                    <label style="font-size: 0.85em; font-weight: bold; margin-bottom: 5px;">Local/Data de Agendamento:</label>
+                                    <div class="br-textarea small">
+                                        <textarea rows="3" placeholder="Ex: junto à Diretoria de Compras, pelo telefone (51) 3451-8000..." data-live-target="view-vistoria-agendamento"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
 
                             <div style="text-align: center; margin-top: 15px;">
                                 <a href="#edital-propostas-lances-habilitacao" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
@@ -299,9 +300,80 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                         </div>
                     </div>
 
-                    <a href="#edital-dotacao" class="nav-item">DOTAÇÃO ORÇAMENTÁRIA</a>
-                    <a href="#edital-infracoes-sancoes" class="nav-item">INFRAÇÕES E SANÇÕES</a>
-                    <a href="#edital-disposicoes-gerais" class="nav-item">DISPOSIÇÕES GERAIS</a>
+                    <div class="nav-group">
+                        <div class="nav-group-header">
+                            <span class="titulo-grupo" data-target="edital-dotacao">DOTAÇÃO ORÇAMENTÁRIA</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+                            <div class="br-input small mb-2">
+                                <label>Qtd. de Dotações:</label>
+                                <input type="number" id="input-qtd-dotacoes" class="br-input small" value="1" min="1" oninput="gerarCamposDotacao()">
+                            </div>
+                            <hr style="margin: 10px 0; border-color: #eee;">
+
+                            <div id="sidebar-dotacoes-container">
+                                </div>
+
+                            <div style="text-align: center; margin-top: 10px;">
+                                <a href="#edital-dotacao" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-group">
+                        <div class="nav-group-header">
+                            <span class="titulo-grupo" data-target="edital-infracoes-sancoes">INFRAÇÕES E SANÇÕES</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="nav-group-content" style="padding: 15px; background-color: #fff;">
+
+                            <p class="mb-1" style="font-size: 0.85em; font-weight: bold; color: #555;">Infrações Leves (17.1.1 - 17.1.3):</p>
+                            <div class="row" style="gap: 5px; margin-bottom: 10px;">
+                                <div class="col" style="flex: 1;">
+                                    <div class="br-input small">
+                                        <label style="font-size: 0.8em;">Mín (%):</label>
+                                        <input type="number" step="0.1" min="0.5" max="15" value="0.5" data-live-target="view-multa1-min">
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1;">
+                                    <div class="br-input small">
+                                        <label style="font-size: 0.8em;">Máx (%):</label>
+                                        <input type="number" step="0.1" min="0.5" max="15" value="15" data-live-target="view-multa1-max">
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.7em; color: #888; margin-top: -5px; margin-bottom: 10px;">* Limites legais: 0,5% a 15%</p>
+
+                            <hr style="margin: 5px 0; border-color: #eee;">
+
+                            <p class="mb-1 mt-2" style="font-size: 0.85em; font-weight: bold; color: #555;">Infrações Graves (17.1.4 - 17.1.9):</p>
+                            <div class="row" style="gap: 5px;">
+                                <div class="col" style="flex: 1;">
+                                    <div class="br-input small">
+                                        <label style="font-size: 0.8em;">Mín (%):</label>
+                                        <input type="number" step="0.1" min="15" max="30" value="15" data-live-target="view-multa2-min">
+                                    </div>
+                                </div>
+                                <div class="col" style="flex: 1;">
+                                    <div class="br-input small">
+                                        <label style="font-size: 0.8em;">Máx (%):</label>
+                                        <input type="number" step="0.1" min="15" max="30" value="30" data-live-target="view-multa2-max">
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.7em; color: #888; margin-top: -5px; margin-bottom: 10px;">* Limites legais: 15% a 30%</p>
+
+                            <div class="br-input small mt-3">
+                                <label>Prazo para Recolhimento (dias):</label>
+                                <input type="number" value="5" data-live-target="view-prazo-multa">
+                            </div>
+
+                            <div style="text-align: center; margin-top: 15px;">
+                                <a href="#edital-infracoes-sancoes" class="br-button secondary small" style="width: 100%; justify-content: center;">Ir para o Texto</a>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>
@@ -326,26 +398,29 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="center bold">REQUISIÇÃO N° <span id="view-requisicao"><?php echo $requisicao_num; ?></span></p>
                 <br>
                 <p><b>OBJETO:</b> <span id="view-objeto"><?php echo $objeto; ?></span></p>
-                <p><b>VALOR TOTAL ESTIMADO:</b> R$ <span id="view-valor"><?php echo $valor_estimado; ?></span></p>
+                <p><b>VALOR TOTAL ESTIMADO:</b> <span id="view-valor"><?php echo $texto_valor_final; ?></span></p>
                 <p><b>LIMITE PARA RECEBIMENTO DAS PROPOSTAS:</b><br>
                     Às 00h00min do dia 00/00/0000 até as 00h00min do dia 00/00/0000</p>
                 <p><b>INÍCIO DA SESSÃO DE DISPUTA:</b><br>
                     Às 00h00min do dia 00/00/0000</p>
-                <p><b>MODO DE DISPUTA:</b> Aberto</p>
+                <p><b>MODO DE DISPUTA:</b> <span id="view-modo-disputa-header">Aberto</span></p>
                 <p><b>CRITÉRIO DE JULGAMENTO:</b> <?php echo $criterio_texto; ?></p>
-                <p><b>PREGOEIRA RESPONSÁVEL:</b> <span id="view-pregoeiro"><?php echo $pregoeiro_nome; ?></span></p>
+                <p><b>PREGOEIRO(A) RESPONSÁVEL:</b> <span id="view-pregoeiro"><?php echo $pregoeiro_nome; ?></span></p>
                 <p><b>REFERÊNCIA DE TEMPO:</b> Será observado o horário de Brasília (DF).</p>
                 <p>Os documentos que integram o Edital serão disponibilizados nos seguintes locais:</p>
                 <p>a) Portal Nacional de Contratações Públicas (PNCP) - https://www.gov.br/pncp/pt-br</p>
                 <p>b) Portal de Compras Públicas (PCP) - https://www.portaldecompraspublicas.com.br/</p>
                 <br>
-                <p>O <b>MUNICÍPIO DE SAPUCAIA DO SUL</b>, inscrito no CNPJ/MF sob o n° 88.185.020/0001-25 por meio da <b>Diretoria de Compras e Licitações da Secretaria Municipal de Administração - SMA</b>, com sede no Endereço: Av. Leônidas de Souza, 1289 - Santa Catarina, Sapucaia do Sul - RS, 93210-140, torna público que realizará licitação na modalidade <b><?php echo $modalidade_texto; ?></b>, tipo por <b id="texto-tipo-julgamento"></b>, que será regido pela Lei Federal nº 14.133 de 1º de abril de 2021, pela Lei Complementar 123/2006, pela Lei Federal n° 8.078/1990 e demais legislações aplicáveis e, ainda, de acordo com as condições estabelecidas neste Edital.</p>
+				<p>O <b>MUNICÍPIO DE SAPUCAIA DO SUL</b>, inscrito no CNPJ/MF sob o n° 88.185.020/0001-25 por meio da <b>Diretoria de Compras e Licitações da Secretaria Municipal de Administração - SMA</b>, com sede no Endereço: Av. Leônidas de Souza, 1289 - Santa Catarina, Sapucaia do Sul - RS, 93210-140, torna público que realizará licitação na modalidade <b><?php echo $modalidade_texto; ?><?php echo ($srp_val == '1') ? ' para registro de preço' : ''; ?></b>, tipo por <b id="texto-tipo-julgamento"></b>, que será regido pela Lei Federal nº 14.133 de 1º de abril de 2021, pela Lei Complementar 123/2006, pela Lei Federal n° 8.078/1990<?php echo ($srp_val == '1') ? ', pelo Decreto Municipal 4867/2022' : ''; ?> e demais legislações aplicáveis e, ainda, de acordo com as condições estabelecidas neste Edital.</p>
                 <p>Conforme especificações descritas no Termo de Referência (Anexo II), o qual passa a ser parte integrante do presente edital.</p>
                 <p>Fazem parte integrante deste edital:</p>
                 <p>Anexo I – Estudo Técnico Preliminar (ETP);</p>
                 <p>Anexo II – Termo de Referência (TR);</p>
                 <p>Anexo III – Modelo de Proposta;</p>
                 <p>Anexo IV – Modelo Contratual;</p>
+                <?php if ($srp_val == '1'): ?>
+                    <p>Anexo V – Modelo de Ata de Registro de Preço;</p>
+                <?php endif; ?>
             </div>
 
             <div id="edital-detalhamento" class="secao-numerada">
@@ -379,7 +454,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem-3">aquele que mantenha vínculo de natureza técnica, comercial, econômica, financeira, trabalhista ou civil com dirigente do órgão ou entidade contratante ou com agente público que desempenhe função na licitação ou atue na fiscalização ou na gestão do contrato, ou que deles seja cônjuge, companheiro ou parente em linha reta, colateral ou por afinidade, até o terceiro grau;</p>
                 <p class="subitem-3">empresas controladoras, controladas ou coligadas, nos termos da Lei nº 6.404, de 15 de dezembro de 1976, concorrendo entre si;</p>
                 <p class="subitem-3">pessoa física ou jurídica que, nos 5 (cinco) anos anteriores à divulgação do edital, tenha sido condenada judicialmente, com trânsito em julgado, por exploração de trabalho infantil, por submissão de trabalhadores a condições análogas às de escravo ou por contratação de adolescentes nos casos vedados pela legislação trabalhista;</p>
-                <p class="subitem"-3>agente público do órgão ou entidade contratante, devendo ser observadas as situações que possam configurar conflito de interesses no exercício ou após o exercício do cargo ou emprego, nos termos da legislação que disciplina a matéria, conforme § 1º do art. 9º da Lei nº 14.133, de 2021.</p>
+                <p class="subitem-3">agente público do órgão ou entidade contratante, devendo ser observadas as situações que possam configurar conflito de interesses no exercício ou após o exercício do cargo ou emprego, nos termos da legislação que disciplina a matéria, conforme § 1º do art. 9º da Lei nº 14.133, de 2021.</p>
                 <p class="subitem">O impedimento de que trata a alínea “a” do item 3.1, supra, será também aplicado ao licitante que atue em substituição a outra pessoa, física ou jurídica, com o intuito de burlar a efetividade da sanção a ela aplicada, inclusive a sua controladora, controlada ou coligada, desde que devidamente comprovado o ilícito ou a utilização fraudulenta da personalidade jurídica do licitante.</p>
                 <p class="subitem">O impedimento de que trata a alínea “c” será também aplicado ao licitante que atue em substituição a outra pessoa, física ou jurídica, com o intuito de burlar a efetividade da sanção a ela aplicada, inclusive a sua controladora, controlada ou coligada, desde que devidamente comprovado o ilícito ou a utilização fraudulenta da personalidade jurídica do licitante.</p>
                 <p class="subitem">A vedação de que trata a alínea “g” estende-se a terceiro que auxilie a condução da contratação na qualidade de integrante de equipe de apoio, profissional especializado ou funcionário ou representante de empresa que preste assessoria técnica.</p>
@@ -436,6 +511,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem-3">não tiverem sua exequibilidade demonstrada, quando exigido pela Administração;</p>
                 <p class="subitem-3">apresentarem desconformidade com quaisquer outras exigências do edital, desde que insanável.</p>
                 <p class="subitem">A verificação da conformidade das propostas poderá ser feita exclusivamente em relação à proposta mais bem classificada.</p>
+                <p class="subitem">Se houver indícios de inexequibilidade da proposta de preço, ou em caso da necessidade de esclarecimentos complementares, poderão ser efetuadas diligências, para que a empresa comprove a exequibilidade da proposta.</p>
                 <p class="subitem">Quaisquer inserções na proposta que visem modificar, extinguir ou criar direitos, sem previsão no edital, serão tidas como inexistentes, aproveitando-se a proposta no que não for conflitante com o instrumento convocatório.</p>
                 <p class="subitem">As propostas classificadas serão ordenadas pelo sistema e o pregoeiro dará início à fase competitiva, oportunidade em que os licitantes poderão encaminhar lances exclusivamente por meio do sistema eletrônico.</p>
                 <p class="subitem">Somente poderão participar da fase competitiva os autores das propostas classificadas.</p>
@@ -451,6 +527,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem">Caberá ao licitante interessado em participar da licitação acompanhar as operações no sistema eletrônico durante o processo licitatório e se responsabilizar pelo ônus decorrente da perda de negócios diante da inobservância de mensagens emitidas pela Administração ou de sua desconexão.</p>
                 <p class="subitem">O licitante deverá comunicar imediatamente ao provedor do sistema qualquer acontecimento que possa comprometer o sigilo ou a segurança, para imediato bloqueio de acesso.</p>
                 <p class="subitem">Não haverá ordem de classificação na etapa de apresentação da proposta e dos documentos de habilitação pelo licitante, o que ocorrerá somente após os procedimentos de abertura da sessão pública e da fase de envio de lances.</p>
+                <p class="subitem">Quando permitida a participação de consórcio de empresas, a habilitação técnica, quando exigida, será feita por meio do somatório dos quantitativos de cada consorciado e, para efeito de habilitação econômico-financeira, quando exigida, será observado o somatório dos valores de cada consorciado.</p>
                 <p class="subitem">Para fins de habilitação neste pregão, a licitante deverá enviar os seguintes documentos, observando o procedimento disposto no item 5 deste Edital:</p>
                 <p class="subitem-3">A documentação exigida para fins de habilitação jurídica, fiscal, social e trabalhista e econômico-financeira, poderá ser substituída pelo registro cadastral no SICAF.</p>
 
@@ -549,17 +626,37 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 
                 <div id="texto-amostra-sim" style="display: none;">
                     <div id="lista-amostra-dinamica"></div>
+                    <p class="subitem-4">No caso de não haver entrega da amostra ou ocorrer atraso na entrega, sem justificativa aceita pelo Pregoeiro, ou havendo entrega de amostra fora das especificações previstas neste Edital, a proposta do licitante será recusada.</p>
+                    <p class="subitem-4">Se a(s) amostra(s) apresentada(s) pelo primeiro classificado não for(em) aceita(s), o Pregoeiro analisará a aceitabilidade da proposta ou lance ofertado pelo segundo classificado. Seguir-se-á com a verificação da(s) amostra(s) e, assim, sucessivamente, até a verificação de uma que atenda às especificações constantes no Termo de Referência.</p>
                 </div>
                 
                 <div id="texto-amostra-nao">
                     <p class="subitem-4">Não será exigida a apresentação de amostras.</p>
                 </div>
+                
+                <div id="texto-vistoria" style="display: none;">
+                    <p class="bold subitem-3">DA VISTORIA</p>
+
+                    <p class="subitem-4">Considerando que na presente contratação a avaliação prévia do local de execução é imprescindível para o conhecimento pleno das condições e peculiaridades do objeto a ser contratado, o licitante deve atestar, sob pena de inabilitação, que conhece o local e as condições de realização do serviço, assegurado a ele o direito de realização de vistoria prévia.</p>
+
+                    <p class="subitem-5">O licitante que optar por realizar vistoria prévia terá disponibilizado pela Administração data e horário exclusivos, a ser agendado <span id="view-vistoria-agendamento" style="background-color: #fff3cd;">[INSERIR DADOS DO AGENDAMENTO]</span>, de modo que seu agendamento não coincida com o agendamento de outros licitantes.</p>
+
+                    <p class="subitem-5">Caso o licitante opte por não realizar vistoria, poderá substituir a declaração exigida no presente item por declaração formal assinada pelo seu responsável técnico acerca do conhecimento pleno das condições e peculiaridades da contratação.</p>
+                </div>
+            </div>
 
             <div id="edital-negociacao-julgamento" class="secao-numerada">
                 <p class="bold"><span class="nr-titulo"></span>. NEGOCIAÇÃO E JULGAMENTO</p>
                 <p class="subitem">Encerrada a etapa de envio de lances da sessão pública, inclusive com a realização do desempate, se for o caso, o pregoeiro deverá encaminhar, pelo sistema eletrônico, contraproposta ao licitante que tenha apresentado o melhor preço, para que seja obtida melhor proposta.</p>
                 <p class="subitem">A resposta à contraproposta e o envio de documentos complementares, necessários ao julgamento da aceitabilidade da proposta, inclusive a sua adequação ao último lance ofertado, que sejam solicitados pelo pregoeiro, deverão ser encaminhados no prazo fixado no item 6.4.4 deste Edital.</p>
-                <p class="subitem">Encerrada a etapa de negociação, será examinada a proposta classificada em primeiro lugar quanto à adequação ao objeto e à compatibilidade do preço em relação valor de referência da Administração.</p>
+                <p class="subitem">Encerrada a etapa de negociação, o Pregoeiro verificará se o licitante provisoriamente classificado em primeiro lugar atende às condições de participação no certame, conforme previsto no art. 14 da Lei nº 14.133, de 2021, legislação correlata e no item 3.7 do edital, especialmente quanto à existência de sanção que impeça a participação no certame ou a futura contratação, mediante a consulta aos seguintes cadastros:</p>
+                <p class="subitem-3">SICAF</p>
+                <p class="subitem-3">Cadastro Nacional de Empresas Punidas – CNEP, mantido pela Controladoria-Geral da União.</p>
+                <p class="subitem">Caso conste na Consulta de Situação do licitante a existência de Ocorrências Impeditivas Indiretas, o Pregoeiro diligenciará para verificar se houve fraude por parte das empresas apontadas no Relatório de Ocorrências Impeditivas Indiretas:</p>
+                <p class="subitem-3">A tentativa de burla será verificada por meio dos vínculos societários, linhas de fornecimento similares, dentre outros.</p>
+                <p class="subitem-3">O licitante será convocado para manifestação previamente a uma eventual desclassificação.</p>
+                <p class="subitem-3">Constatada a existência de sanção, o licitante será reputado inabilitado, por falta de condição de participação.</p>
+                <p class="subitem">Verificadas as condições de participação e de utilização do tratamento favorecido, o Pregoeiro examinará a proposta classificada em primeiro lugar quanto à adequação ao objeto e à compatibilidade do preço em relação ao máximo estipulado para contratação neste Edital e em seus anexos, observado o disposto no artigo 29 a 35 da IN SEGES nº 73, de 30 de setembro de 2022.</p>
                 <p class="subitem">Não serão consideradas, para julgamento das propostas, vantagens não previstas no edital.</p>
             </div>
 
@@ -574,16 +671,23 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem">Se não houver licitante que atenda ao item 9.1 e seus subitens, serão utilizados os seguintes critérios de desempate, nesta ordem:</p>
                 <p class="subitem-3">disputa final, hipótese em que os licitantes empatados poderão apresentar nova proposta em ato contínuo à classificação;</p>
                 <p class="subitem-3">avaliação do desempenho contratual prévio dos licitantes, para a qual serão ser utilizados registros cadastrais para efeito de atesto de cumprimento de obrigações decorrentes de outras contratações;</p>
+                <p class="subitem-3">desenvolvimento pelo licitante de ações de equidade entre homens e mulheres no ambiente de trabalho, conforme regulamento;</p>
                 <p class="subitem-3">desenvolvimento pelo licitante de programa de integridade, conforme orientações dos órgãos de controle.</p>
                 <p class="subitem">Em igualdade de condições, se não houver desempate, será assegurada preferência, sucessivamente, aos bens e serviços produzidos ou prestados por:</p>
                 <p class="subitem-3">empresas estabelecidas no território do Estado do Rio Grande do Sul;</p>
                 <p class="subitem-3">empresas brasileiras;</p>
                 <p class="subitem-3">empresas que invistam em pesquisa e no desenvolvimento de tecnologia no País;</p>
                 <p class="subitem-3">empresas que comprovem a prática de mitigação, nos termos da Lei nº 12.187, de 29 de dezembro de 2009.</p>
+                <p class="subitem">Esgotados todos os demais critérios de desempate previstos em lei, a escolha do licitante vencedor ocorrerá por sorteio, em ato público, para o qual todos os licitantes serão convocados, vedado qualquer outro processo.</p>
             </div>
 
             <div id="edital-esclarecimentos-impugnacoes" class="secao-numerada">
                 <p class="bold"><span class="nr-titulo"></span>. PEDIDOS DE ESCLARECIMENTOS E IMPUGNAÇÕES</p>
+                <p class="subitem">Qualquer pessoa é parte legítima para impugnar este Edital por irregularidade na aplicação da Lei nº 14.133, de 2021, devendo protocolar o pedido até 3 (três) dias úteis antes da data da abertura do certame.</p>
+                <p class="subitem">A resposta à impugnação ou ao pedido de esclarecimento será divulgado em sítio eletrônico oficial no prazo de até 3 (três) dias úteis, limitado ao último dia útil anterior à data da abertura do certame.</p>
+                <p class="subitem">As impugnações e pedidos de esclarecimentos não suspendem os prazos previstos no certame.</p>
+                <p class="subitem">A concessão de efeito suspensivo à impugnação é medida excepcional e deverá ser motivada pelo Pregoeiro, nos autos do processo de licitação.</p>
+                <p class="subitem">Acolhida a impugnação, será definida e publicada nova data para a realização do certame.</p>             
                 <p class="subitem">Os pedidos de esclarecimentos referentes ao processo licitatório e os pedidos de impugnações poderão ser enviados ao pregoeiro, até três dias úteis anteriores à data fixada para abertura da sessão pública, por meio do seguinte endereço eletrônico: www.portaldecompraspublicas.com.br.</p>
                 <p class="subitem">As respostas aos pedidos de esclarecimentos e às impugnações serão divulgadas no seguinte sítio eletrônico da Administração: www.portaldecompraspublicas.com.br.</p>
             </div>
@@ -610,27 +714,24 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem-3">a intenção de recorrer deverá ser manifestada imediatamente, sob pena de preclusão, e o prazo para apresentação das razões recursais será iniciado na data de intimação ou de lavratura da ata de habilitação ou inabilitação;</p>
                 <p class="subitem-3">a apreciação dar-se-á em fase única.</p>
                 <p class="subitem">O recurso será dirigido à autoridade que tiver editado o ato ou proferido a decisão recorrida, que, se não reconsiderar o ato ou a decisão no prazo de 3 (três) dias úteis, encaminhará o recurso com a sua motivação à autoridade superior, a qual deverá proferir sua decisão no prazo máximo de 10 (dez) dias úteis, contado do recebimento dos autos.</p>
+                <p class="subitem">Os recursos interpostos fora do prazo não serão conhecidos.</p>
                 <p class="subitem">O acolhimento do recurso implicará invalidação apenas de ato insuscetível de aproveitamento.</p>
                 <p class="subitem">O recurso interposto dará efeito suspensivo ao ato ou à decisão recorrida, até que sobrevenha decisão final da autoridade competente.</p>
             </div>
 
             <div id="edital-encerramento" class="secao-numerada">
-                <p class="bold"><span class="nr-titulo"></span>. ENCERRAMENTO DA LICITAÇÃO</p>
+                <p class="bold"><span class="nr-titulo"></span>. DO ENCERRAMENTO, ADJUDICAÇÃO E HOMOLOGAÇÃO</p>
                 <p class="subitem">Encerradas as fases de julgamento e habilitação, e exauridos os recursos administrativos, o processo licitatório será encaminhado à autoridade superior, que poderá:</p>
                 <p class="subitem-3">determinar o retorno dos autos para saneamento de irregularidades;</p>
                 <p class="subitem-3">revogar a licitação por motivo de conveniência e oportunidade;</p>
                 <p class="subitem-3">proceder à anulação da licitação, de ofício ou mediante provocação de terceiros, sempre que presente ilegalidade insanável;</p>
-                <p class="subitem-3">adjudicar o objeto e homologar a licitação.</p>
-            </div>
-
-            <div id="edital-adjudicacao-homologacao" class="secao-numerada">
-                <p class="bold"><span class="nr-titulo"></span>. DA ADJUDICAÇÃO E HOMOLOGAÇÃO</p>
-                <p class="subitem">Encerradas as fases de julgamento e habilitação, e exauridos os recursos administrativos, o processo licitatório será encaminhado à autoridade superior para adjudicar o objeto e homologar o procedimento, observado o disposto no art. 71 da Lei nº 14.133, de 2021.</p>
+                <p class="subitem-3">adjudicar o objeto e homologar o procedimento, observado o disposto no art. 71 da Lei nº 14.133, de 2021.</p>
             </div>
 
             <div id="edital-dotacao" class="secao-numerada">
                 <p class="bold"><span class="nr-titulo"></span>. DOTAÇÃO ORÇAMENTÁRIA:</p>
                 <p class="subitem">O dispêndio financeiro decorrente da contratação ora pretendido decorrerá da(s) dotação(ões) orçamentária(s):</p>
+                <div id="container-dotacoes"></div>
             </div>
 
             <div id="edital-contratacao" class="secao-numerada">
@@ -681,12 +782,15 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem-3">as circunstâncias agravantes ou atenuantes</p>
                 <p class="subitem-3">os danos que dela provierem para a Administração Pública</p>
                 <p class="subitem-3">a implantação ou o aperfeiçoamento de programa de integridade, conforme normas e orientações dos órgãos de controle.</p>
-                <p class="subitem">A multa será recolhida no prazo máximo de dias úteis, a contar da comunicação oficial.</p>
-                <p class="subitem-3">Para as infrações previstas nos itens 17.1.1, 17.1.2 e 17.1.3, a multa será de 0.5% a 15% do valor do contrato licitado.</p>
-                <p class="subitem-3">Para as infrações previstas nos itens 17.1.4, 17.1.5, 17.1.6, 17.1.7, 17.1.8 e 17.1.9, a multa será de 15% a 30% do valor do contrato licitado.</p>
+
+                <p class="subitem">A multa será recolhida no prazo máximo de <span id="view-prazo-multa">5</span> dias úteis, a contar da comunicação oficial.</p>
+
+                <p class="subitem-3">Para as infrações previstas nos itens 16.1.1, 16.1.2 e 16.1.3, a multa será de <span id="view-multa1-min">0.5</span>% a <span id="view-multa1-max">15</span>% do valor do contrato licitado.</p>
+                <p class="subitem-3">Para as infrações previstas nos itens 16.1.4, 16.1.5, 16.1.6, 16.1.7, 16.1.8 e 16.1.9, a multa será de <span id="view-multa2-min">15</span>% a <span id="view-multa2-max">30</span>% do valor do contrato licitado.</p>
+
                 <p class="subitem">As sanções de advertência, impedimento de licitar e contratar e declaração de inidoneidade para licitar ou contratar poderão ser aplicadas, cumulativamente ou não, à penalidade de multa.</p>
                 <p class="subitem">Na aplicação da sanção de multa será facultada a defesa do interessado no prazo de 15 (quinze) dias úteis, contado da data de sua intimação.</p>
-                <p class="subitem">A sanção de impedimento de licitar e contratar será aplicada ao responsável em decorrência das infrações administrativas relacionadas nos itens 17.1.1, 17.1.2 e 17.1.3, quando não se justificar a imposição de penalidade mais grave, e impedirá o responsável de licitar e contratar no âmbito da Administração Pública direta e indireta do ente federativo o qual pertencer o órgão ou entidade, pelo prazo máximo de 3 (três) anos.</p>
+                <p class="subitem">A sanção de impedimento de licitar e contratar será aplicada ao responsável em decorrência das infrações administrativas relacionadas nos itens 16.1.1, 16.1.2 e 16.1.3, quando não se justificar a imposição de penalidade mais grave, e impedirá o responsável de licitar e contratar no âmbito da Administração Pública direta e indireta do ente federativo o qual pertencer o órgão ou entidade, pelo prazo máximo de 3 (três) anos.</p>
                 <p class="subitem">Poderá ser aplicada ao responsável a sanção de declaração de inidoneidade para licitar ou contratar, em decorrência da prática das infrações dispostas nos itens 17.1.5, 17.1.6, 17.1.7, 17.1.8 e 17.1.9, bem como pelas infrações administrativas previstas nos itens 17.1.1, 17.1.2, 17.1.3 e 17.1.4, que justifiquem a imposição de penalidade mais grave que a sanção de impedimento de licitar e contratar, cuja duração observará o prazo previsto no art. 156, §5º, da Lei n.º 14.133, de 2021.</p>
                 <p class="subitem">A recusa injustificada do adjudicatário em assinar o contrato ou a ata de registro de preço, ou em aceitar ou retirar o instrumento equivalente no prazo estabelecido pela Administração, descrita no item 17.1.4, caracterizará o descumprimento total da obrigação assumida e o sujeitará às penalidades e à imediata perda da garantia de proposta em favor do órgão ou entidade promotora da licitação, nos termos do art. 45, §4º da IN SEGES/ME n.º 73, de 2022.</p>
                 <p class="subitem">A apuração de responsabilidade relacionadas às sanções de impedimento de licitar e contratar e de declaração de inidoneidade para licitar ou contratar demandará a instauração de processo de responsabilização a ser conduzido por comissão composta por 2 (dois) ou mais servidores estáveis, que avaliará fatos e circunstâncias conhecidos e intimará o licitante ou o adjudicatário para, no prazo de 15 (quinze) dias úteis, contado da data de sua intimação, apresentar defesa escrita e especificar as provas que pretenda produzir.</p>
