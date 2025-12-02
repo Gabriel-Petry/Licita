@@ -23,6 +23,12 @@ window.atualizarPreview = function(elementId, valor) {
 window.atualizarTextoDisputa = function() {
     console.log("Atualizando textos de disputa...");
 
+    var dataStore = document.getElementById('edital-data-store');
+    var modVal = (Edital.dados && Edital.dados.modalidade) ? Edital.dados.modalidade : (dataStore ? dataStore.dataset.modalidade : '1');
+    
+    var cargoLower = (modVal === '1') ? 'pregoeiro' : 'agente de contratação';
+    var cargoCap   = (modVal === '1') ? 'Pregoeiro' : 'Agente de Contratação';
+
     var radios = document.getElementsByName('input-modo-disputa');
     var modo = 'aberto';
     var textoHeader = 'Aberto';
@@ -45,16 +51,16 @@ window.atualizarTextoDisputa = function() {
 
     var textos = {
         aberto: {
-            intro: "Será adotado o modo de disputa aberto, em que os licitantes apresentarão lances públicos e sucessivos, observando as regras constantes no item 7.",
+            intro: "Será adotado o modo de disputa aberto, em que os licitantes apresentarão lances públicos e sucessivos, observando as regras constantes no item <span class='xref' data-target='proforlan'></span>",
             p1: "A etapa competitiva, de envio de lances na sessão pública, durará 10 (dez) minutos e, após isso, será prorrogada automaticamente pelo sistema quando houver lance ofertado nos últimos dois minutos do período de duração da sessão pública.",
             p2: "A prorrogação automática da etapa de envio de lances será de dois minutos e ocorrerá sucessivamente sempre que houver lances enviados nesse período de prorrogação, inclusive quando se tratar de lances intermediários.",
             p3: "Na hipótese de não haver novos lances, a sessão pública será encerrada automaticamente.",
-            p4: "Encerrada a sessão pública sem prorrogação automática pelo sistema, o pregoeiro poderá, assessorado pela equipe de apoio, admitir o reinício da etapa de envio de lances, em prol da consecução do melhor preço, mediante justificativa.",
+            p4: "Encerrada a sessão pública sem prorrogação automática pelo sistema, o " + cargoCap + " poderá, assessorado pela equipe de apoio, admitir o reinício da etapa de envio de lances, em prol da consecução do melhor preço, mediante justificativa.",
             p5: null,
             p6: null
         },
         aberto_fechado: {
-            intro: "Será adotado o modo de disputa aberto e fechado, em que os licitantes apresentarão lances públicos e sucessivos, com lance final e fechado, observando as regras constantes no item 7.",
+            intro: "Será adotado o modo de disputa aberto e fechado, em que os licitantes apresentarão lances públicos e sucessivos, com lance final e fechado, observando as regras constantes no item <span class='xref' data-target='proforlan'></span>",
             p1: "A etapa de lances da sessão pública terá duração inicial de quinze minutos. Após esse prazo, o sistema encaminhará aviso de fechamento iminente dos lances, após o que transcorrerá o período de até dez minutos, aleatoriamente determinado, findo o qual será automaticamente encerrada a recepção de lances.",
             p2: "Encerrado o prazo previsto no subitem anterior, o sistema abrirá oportunidade para que o autor da oferta de valor mais baixo e os das ofertas com preços até 10% (dez por cento) superiores àquela possam ofertar um lance final e fechado em até cinco minutos, o qual será sigiloso até o encerramento deste prazo.",
             p3: "No procedimento de que trata o subitem supra, o licitante poderá optar por manter o seu último lance da etapa aberta, ou por ofertar melhor lance.",
@@ -68,7 +74,7 @@ window.atualizarTextoDisputa = function() {
             p2: "A etapa de lances da sessão pública terá duração de dez minutos e, após isso, será prorrogada automaticamente pelo sistema quando houver lance ofertado nos últimos dois minutos do período de duração da sessão pública.",
             p3: "A prorrogação automática da etapa de lances, de que trata o subitem anterior, será de dois minutos e ocorrerá sucessivamente sempre que houver lances enviados nesse período de prorrogação, inclusive no caso de lances intermediários.",
             p4: "Não havendo novos lances na forma estabelecida nos itens anteriores, a sessão pública encerrar-se-á automaticamente, e o sistema ordenará e divulgará os lances conforme a ordem final de classificação.",
-            p5: "Definida a melhor proposta, se a diferença em relação à proposta classificada em segundo lugar for de pelo menos 5% (cinco por cento), o Pregoeiro, auxiliado pela equipe de apoio, poderá admitir o reinício da disputa aberta, para a definição das demais colocações.",
+            p5: "Definida a melhor proposta, se a diferença em relação à proposta classificada em segundo lugar for de pelo menos 5% (cinco por cento), o " + cargoCap + ", auxiliado pela equipe de apoio, poderá admitir o reinício da disputa aberta, para a definição das demais colocações.",
             p6: "Após o reinício previsto no subitem supra, os licitantes serão convocados para apresentar lances intermediários."
         }
     };
@@ -79,7 +85,7 @@ window.atualizarTextoDisputa = function() {
         var el = document.getElementById(id);
         if (el) {
             if (txt) {
-                el.innerText = txt;
+                el.innerHTML = txt;
                 el.style.display = 'block';
                 el.style.backgroundColor = "#fff3cd";
                 setTimeout(function() {
@@ -538,13 +544,20 @@ window.atualizarVistoria = function() {
 
     var tools = document.getElementById('tools-vistoria');
     var texto = document.getElementById('texto-vistoria');
+    
+    var refWrapper = document.getElementById('ref-wrapper-vis');
+    var sepAmo = document.getElementById('sep-amo');
 
     if (val === 'sim') {
         if (tools) tools.style.display = 'block';
         if (texto) texto.style.display = 'block';
+        if (refWrapper) refWrapper.style.display = 'inline';         
+        if (sepAmo) sepAmo.innerText = ", "; 
     } else {
         if (tools) tools.style.display = 'none';
         if (texto) texto.style.display = 'none';
+        if (refWrapper) refWrapper.style.display = 'none'; 
+        if (sepAmo) sepAmo.innerText = " e "; 
     }
 
     var elRef = document.getElementById('vistoria-sim');
@@ -802,4 +815,75 @@ function NumeraTudo() {
             cont1++;
         }
     });
+    
+    if (typeof AtualizarReferenciasCruzadas === 'function') {
+        AtualizarReferenciasCruzadas();
+    }
 }
+
+function AtualizarReferenciasCruzadas() {
+    var referencias = document.querySelectorAll('.xref');
+
+    referencias.forEach(function(span) {
+        var idAlvo = span.getAttribute('data-target');
+        var elementoAlvo = document.getElementById(idAlvo);
+
+        if (elementoAlvo) {
+            var numeroGerado = elementoAlvo.querySelector('.nr-auto');
+            
+            if (numeroGerado) {
+                var textoLimpo = numeroGerado.innerText.trim().replace(/\.$/, "");
+                span.innerText = textoLimpo;
+                
+            } else {
+                span.innerText = "[ERRO: Sem número]";
+            }
+        } else {
+            span.innerText = "[ERRO: Alvo não encontrado]";
+        }
+    });
+}
+
+function AtualizarReferenciasCruzadas() {
+    var referencias = document.querySelectorAll('.xref');
+
+    referencias.forEach(function(span) {
+        var idAlvo = span.getAttribute('data-target');
+        var elementoAlvo = document.getElementById(idAlvo);
+
+        if (elementoAlvo) {
+            var numeroGerado = elementoAlvo.querySelector('.nr-auto') || elementoAlvo.querySelector('.nr-titulo');
+            
+            if (numeroGerado) {
+                var textoLimpo = numeroGerado.innerText.trim().replace(/\.$/, "");
+                span.innerText = textoLimpo;
+            } else {
+                span.innerText = "[ERRO: Sem número]";
+                console.warn("Alvo encontrado, mas sem número: " + idAlvo);
+            }
+        } else {
+            span.innerText = "[ERRO: Alvo não encontrado]";
+            console.warn("Alvo não encontrado no HTML: " + idAlvo);
+        }
+    });
+}
+
+window.formatarMoeda = function(elemento) {
+    var valor = elemento.value;
+    
+    valor = valor.replace(/\D/g, "");
+    
+    if (valor === "") {
+        elemento.value = "";
+        return;
+    }
+    
+    valor = (parseInt(valor) / 100).toFixed(2) + "";
+    valor = valor.replace(".", ",");
+    valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+    
+    elemento.value = valor;
+    
+    var event = new Event('input', { bubbles: true });
+    elemento.dispatchEvent(event);
+};
