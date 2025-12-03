@@ -26,8 +26,7 @@ window.atualizarTextoDisputa = function() {
     var dataStore = document.getElementById('edital-data-store');
     var modVal = (Edital.dados && Edital.dados.modalidade) ? Edital.dados.modalidade : (dataStore ? dataStore.dataset.modalidade : '1');
     
-    var cargoLower = (modVal === '1') ? 'pregoeiro' : 'agente de contratação';
-    var cargoCap   = (modVal === '1') ? 'Pregoeiro' : 'Agente de Contratação';
+    var cargoCap = (modVal === '1') ? 'Pregoeiro' : 'Agente de Contratação';
 
     var radios = document.getElementsByName('input-modo-disputa');
     var modo = 'aberto';
@@ -108,7 +107,6 @@ window.atualizarTextoDisputa = function() {
 
     if (typeof NumeraTudo === 'function') NumeraTudo();
 };
-
 
 window.atualizarModoDisputa = function() {
     var radios = document.getElementsByName('input-tipo-jul');
@@ -551,7 +549,7 @@ window.atualizarVistoria = function() {
     if (val === 'sim') {
         if (tools) tools.style.display = 'block';
         if (texto) texto.style.display = 'block';
-        if (refWrapper) refWrapper.style.display = 'inline';         
+        if (refWrapper) refWrapper.style.display = 'inline';          
         if (sepAmo) sepAmo.innerText = ", "; 
     } else {
         if (tools) tools.style.display = 'none';
@@ -568,12 +566,10 @@ window.atualizarVistoria = function() {
     if (typeof NumeraTudo === 'function') NumeraTudo();
 };
 
-
 document.addEventListener('DOMContentLoaded', function() {
     var dataStore = document.getElementById('edital-data-store');
     if (dataStore) {
-        Edital.dados = { ...dataStore.dataset
-        };
+        Edital.dados = { ...dataStore.dataset };
     }
 
     var btnAdd = document.getElementById('btn-add-item');
@@ -677,11 +673,68 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    var formPdf = document.getElementById('pdf-form');
-    if (formPdf) {
-        formPdf.addEventListener('submit', function() {
-            var content = document.querySelector('.document-paper');
-            if (content) document.getElementById('hidden_html_content').value = content.innerHTML;
+    var exportForm = document.getElementById('export-form'); 
+    if(!exportForm) exportForm = document.getElementById('pdf-form');
+
+    if (exportForm) {
+        exportForm.addEventListener('submit', function(e) {
+            try {
+                var contentOriginal = document.querySelector('.document-paper');
+                if (!contentOriginal) {
+                    alert("Erro: Conteúdo não encontrado.");
+                    e.preventDefault();
+                    return;
+                }
+
+                var clone = contentOriginal.cloneNode(true);
+
+                var lixo = clone.querySelectorAll('img, script, style, .hidden, .no-print, .editor-sidebar, button, input, select, form, label, hr');
+                lixo.forEach(function(el) { el.remove(); });
+
+                var textos = clone.querySelectorAll('p, li, span, div, td');
+                textos.forEach(function(el) {
+                    el.style.fontFamily = 'Arial, sans-serif';
+                    el.style.fontSize = '11pt';
+                    el.style.lineHeight = '1.5';
+                    
+                    if (el.classList.contains('center') || el.style.textAlign === 'center') {
+                        el.style.textAlign = 'center';
+                    } else if (!el.style.textAlign) {
+                        el.style.textAlign = 'justify';
+                    }
+                    
+                    if (el.classList.contains('bold')) el.style.fontWeight = 'bold';
+                    
+                    if (el.classList.contains('subitem-3')) el.style.marginLeft = '20px';
+                    if (el.classList.contains('subitem-4')) el.style.marginLeft = '40px';
+                    if (el.classList.contains('subitem-5')) el.style.marginLeft = '60px';
+                });
+
+                var tabelas = clone.querySelectorAll('table');
+                tabelas.forEach(function(tb) {
+                    tb.setAttribute('border', '1');
+                    tb.style.width = '100%';
+                    tb.style.borderCollapse = 'collapse';
+                    tb.style.border = '1px solid #000';
+                    tb.style.marginBottom = '15px';
+                    
+                    tb.querySelectorAll('td, th').forEach(function(cell) {
+                        cell.style.border = '1px solid #000';
+                        cell.style.padding = '5px';
+                        if (cell.tagName === 'TH') {
+                            cell.style.fontWeight = 'bold';
+                            cell.style.backgroundColor = '#f0f0f0';
+                        }
+                    });
+                });
+
+                document.getElementById('hidden_html_content').value = '<body>' + clone.innerHTML + '</body>';
+
+            } catch (err) {
+                console.error("Erro ao preparar documento: ", err);
+                alert("Erro ao gerar documento. Verifique o console.");
+                e.preventDefault();
+            }
         });
     }
 });
@@ -819,29 +872,6 @@ function NumeraTudo() {
     if (typeof AtualizarReferenciasCruzadas === 'function') {
         AtualizarReferenciasCruzadas();
     }
-}
-
-function AtualizarReferenciasCruzadas() {
-    var referencias = document.querySelectorAll('.xref');
-
-    referencias.forEach(function(span) {
-        var idAlvo = span.getAttribute('data-target');
-        var elementoAlvo = document.getElementById(idAlvo);
-
-        if (elementoAlvo) {
-            var numeroGerado = elementoAlvo.querySelector('.nr-auto');
-            
-            if (numeroGerado) {
-                var textoLimpo = numeroGerado.innerText.trim().replace(/\.$/, "");
-                span.innerText = textoLimpo;
-                
-            } else {
-                span.innerText = "[ERRO: Sem número]";
-            }
-        } else {
-            span.innerText = "[ERRO: Alvo não encontrado]";
-        }
-    });
 }
 
 function AtualizarReferenciasCruzadas() {

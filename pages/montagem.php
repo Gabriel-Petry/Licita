@@ -423,12 +423,17 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
             </div>
         </div>
 
-        <form id="pdf-form" method="POST" action="finalizar_pdf.php" target="_blank" style="margin-top: 1.5rem;">
+        <form id="export-form" method="POST" target="_blank" style="margin-top: 1.5rem;">
             <input type="hidden" name="edital_html" id="hidden_html_content">
             <div class="card">
                 <div class="card-footer form-actions" style="display: flex; justify-content: flex-end; gap: 1rem;">
-                    <button class="br-button secondary" type="button" id="btn-salvar-html">Salvar HTML</button>
-                    <button class="br-button primary" type="submit" id="btn-gerar-pdf">Gerar PDF</button>
+                    <button class="br-button primary" type="submit" id="btn-gerar-pdf" formaction="finalizar_pdf.php">
+                        <i class="fas fa-file-pdf"></i> Gerar PDF
+                    </button>
+
+                    <button class="br-button secondary" type="submit" id="btn-gerar-word" formaction="finalizar_word.php">
+                        <i class="fas fa-file-word"></i> Gerar Word
+                    </button>
                 </div>
             </div>
         </form>
@@ -437,7 +442,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
     <div class="editor-preview" id="right">
         <div class="document-paper">
             <div id="edital-cabecalho">
-                <p class="center bold">EDITAL DE <?php echo strtoupper($modalidade_texto); ?> N° <span id="view-pregao"><?php echo $pregao_num; ?></span></p>
+                <p class="center bold">EDITAL DE <?php echo mb_strtoupper($modalidade_texto); ?> N° <span id="view-pregao"><?php echo $pregao_num; ?></span></p>
                 <p class="center bold">PROCESSO DIGITAL N° <span id="view-processo"><?php echo $processo_num; ?></span></p>
                 <p class="center bold">REQUISIÇÃO N° <span id="view-requisicao"><?php echo $requisicao_num; ?></span></p>
                 <br>
