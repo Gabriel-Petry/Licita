@@ -40,23 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)($_POST['id'] ?? 0);
             if ($id > 0) {
                 $pdo->beginTransaction();
-                // 1. Encontrar todas as demandas associadas ao PCA
                 $stmt_demandas = $pdo->prepare("SELECT id FROM demandas WHERE pca_id = ?");
                 $stmt_demandas->execute([$id]);
                 $demandas_ids = $stmt_demandas->fetchAll(PDO::FETCH_COLUMN);
 
                 if (count($demandas_ids) > 0) {
-                    // 2. Apagar os itens de todas as demandas encontradas
                     $in_clause = implode(',', array_fill(0, count($demandas_ids), '?'));
                     $stmt_delete_itens = $pdo->prepare("DELETE FROM demanda_itens WHERE demanda_id IN ($in_clause)");
                     $stmt_delete_itens->execute($demandas_ids);
-
-                    // 3. Apagar as demandas
                     $stmt_delete_demandas = $pdo->prepare("DELETE FROM demandas WHERE pca_id = ?");
                     $stmt_delete_demandas->execute([$id]);
                 }
 
-                // 4. Apagar o PCA
                 $stmt_delete_pca = $pdo->prepare("DELETE FROM plano_contratacoes_anual WHERE id = ?");
                 $stmt_delete_pca->execute([$id]);
                 

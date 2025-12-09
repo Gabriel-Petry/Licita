@@ -92,7 +92,7 @@ function render_homologadas_table_content($rows, $total_items, $items_per_page, 
                 <td><?= $r['valor_adjudicado'] ? 'R$ ' . number_format((float) $r['valor_adjudicado'], 2, ',', '.') : '--' ?></td>
                 <td><?= $r['data_homologacao'] ? htmlspecialchars(date('d/m/Y', strtotime($r['data_homologacao']))) : '--' ?></td>
                 <td class="actions-cell" style="white-space: nowrap;">
-                  <a href="#consultar-popup-<?= $r['id'] ?>" class="btn btn-sm btn-consultar" data-licitacao='<?= htmlspecialchars(json_encode($r), ENT_QUOTES, 'UTF-8') ?>'>Consultar</a>
+                  <a href="#consultar-popup" class="btn btn-sm btn-consultar" data-licitacao='<?= htmlspecialchars(json_encode($r), ENT_QUOTES, 'UTF-8') ?>'>Consultar</a>
                   <?php if (stripos($r['status'], 'homologad') !== false && tem_permissao('concluidos.desomologar')): ?>
                     <a href="#desomologar-popup" class="btn btn-sm warn btn-desomologar" data-id="<?= $r['id'] ?>" data-processo="<?= htmlspecialchars($r['processo']) ?>">Desomologar</a>
                   <?php endif; ?>
@@ -148,9 +148,7 @@ render_header('Processos Concluídos - LicitAções', ['bodyClass' => 'page-lici
   </div>
 </div>
 
-<?php ?>
-<?php foreach ($rows as $r): ?>
-<div id="consultar-popup-<?= $r['id'] ?>" class="popup-overlay">
+<div id="consultar-popup" class="popup-overlay">
   <div class="popup-card card">
     <a href="#" class="popup-close">&times;</a>
     <h2 class="consultar-title">Detalhes da Licitação</h2>
@@ -158,7 +156,6 @@ render_header('Processos Concluídos - LicitAções', ['bodyClass' => 'page-lici
         </div>
   </div>
 </div>
-<?php endforeach; ?>
 
 <?php if (tem_permissao('concluidos.desomologar')): ?>
 <div id="desomologar-popup" class="popup-overlay">

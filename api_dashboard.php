@@ -42,7 +42,6 @@ try {
     $valorTotalDiretasAno_stmt->execute($params);
     $valorTotalDiretasAno = (float)$valorTotalDiretasAno_stmt->fetchColumn();
 
-    // --- Gráficos ---
     $status_stmt = $pdo->prepare("SELECT COALESCE(s.nome, 'Sem Status') AS nome, COUNT(l.id) AS qtd FROM licitacoes l LEFT JOIN status s ON s.id = l.status_id WHERE {$year_filter_sql} AND s.nome NOT LIKE 'Homologada%' AND s.nome NOT LIKE 'Fracassada%' AND s.nome NOT LIKE 'Desert%' AND s.nome NOT LIKE 'Publicada' GROUP BY s.nome ORDER BY s.nome");
     $status_stmt->execute($params);
     $status = $status_stmt->fetchAll();
@@ -55,13 +54,144 @@ try {
     $gasto_por_orgao_stmt->execute($params);
     $gasto_por_orgao = $gasto_por_orgao_stmt->fetchAll();
 
-    $contagem_por_agente_stmt = $pdo->prepare("SELECT ac.nome, COUNT(l.id) as total FROM agentes_contratacao ac LEFT JOIN licitacoes l ON ac.id = l.agente_contratacao_id WHERE {$year_filter_sql} GROUP BY ac.nome HAVING COUNT(l.id) > 0 ORDER BY total DESC LIMIT 10");
-    $contagem_por_agente_stmt->execute($params);
-    $contagem_por_agente = $contagem_por_agente_stmt->fetchAll();
+    $top_agentes_stmt = $pdo->prepare("
+        SELECT ac.nome, SUM(COALESCE(l.complexidade, 1)) as total_pontos
+        FROM agentes_contratacao ac
+        LEFT JOIN licitacoes l ON ac.id = l.agente_contratacao_id
+        WHERE {$year_filter_sql}
+        GROUP BY ac.nome
+        HAVING COUNT(l.id) > 0
+        ORDER BY total_pontos DESC
+        LIMIT 10
+    ");
+    $top_agentes_stmt->execute($params);
+    $top_agentes_nomes = $top_agentes_stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    $contagem_por_responsavel_stmt = $pdo->prepare("SELECT re.nome, COUNT(l.id) as total FROM responsaveis_elaboracao re LEFT JOIN licitacoes l ON re.id = l.responsavel_elaboracao_id WHERE {$year_filter_sql} GROUP BY re.nome HAVING COUNT(l.id) > 0 ORDER BY total DESC LIMIT 10");
-    $contagem_por_responsavel_stmt->execute($params);
-    $contagem_por_responsavel = $contagem_por_responsavel_stmt->fetchAll();
+    $contagem_por_agente = [];
+
+    if (!empty($top_agentes_nomes)) {
+        $in_params_ag = [];
+        $in_names_ag = [];
+        foreach ($top_agentes_nomes as $k => $name) {
+            $pname = ":ag_$k";
+            $in_params_ag[$pname] = $name;
+            $in_names_ag[] = $pname;
+        }
+        $placeholders_ag = implode(',', $in_names_ag);
+
+        $sql_detalhe_ag = "
+            SELECT ac.nome, COALESCE(l.complexidade, 1) as nivel, COUNT(l.id) as qtd
+            FROM licitacoes l
+            JOIN agentes_contratacao ac ON l.agente_contratacao_id = ac.id
+            WHERE {$year_filter_sql}
+            AND ac.nome IN ($placeholders_ag)
+            GROUP BY ac.nome, nivel
+        ";
+        
+        $params_detalhe_ag = array_merge($params, $in_params_ag);
+        $stmt_detalhe_ag = $pdo->prepare($sql_detalhe_ag);
+        $stmt_detalhe_ag->execute($params_detalhe_ag);
+        $dados_ag_raw = $stmt_detalhe_ag->fetchAll(PDO::FETCH_ASSOC);
+
+        $dados_ag_organizados = [];
+        foreach ($dados_ag_raw as $row) {
+            $nivel = (int)$row['nivel'];
+            $pontos = (int)$row['qtd'] * $nivel;
+            $dados_ag_organizados[$nivel][$row['nome']] = $pontos;
+        }
+
+        $datasetsAgentes = [];
+        
+        $data_n1 = [];
+        foreach ($top_agentes_nomes as $nome) $data_n1[] = $dados_ag_organizados[1][$nome] ?? 0;
+        $datasetsAgentes[] = ['label' => 'Simples (1 pt)', 'data' => $data_n1, 'backgroundColor' => '#22c55e']; // Verde
+
+        $data_n2 = [];
+        foreach ($top_agentes_nomes as $nome) $data_n2[] = $dados_ag_organizados[2][$nome] ?? 0;
+        $datasetsAgentes[] = ['label' => 'Médio (2 pts)', 'data' => $data_n2, 'backgroundColor' => '#f59e0b']; // Laranja
+
+        $data_n3 = [];
+        foreach ($top_agentes_nomes as $nome) $data_n3[] = $dados_ag_organizados[3][$nome] ?? 0;
+        $datasetsAgentes[] = ['label' => 'Complexo (3 pts)', 'data' => $data_n3, 'backgroundColor' => '#ef4444']; // Vermelho
+
+        $contagem_por_agente = [
+            'labels' => $top_agentes_nomes,
+            'datasets' => $datasetsAgentes
+        ];
+    }
+
+    $top_resp_stmt = $pdo->prepare("
+        SELECT re.nome, SUM(COALESCE(l.complexidade, 1)) as total_pontos
+        FROM responsaveis_elaboracao re 
+        LEFT JOIN licitacoes l ON re.id = l.responsavel_elaboracao_id 
+        WHERE {$year_filter_sql} 
+        GROUP BY re.nome 
+        HAVING COUNT(l.id) > 0 
+        ORDER BY total_pontos DESC 
+        LIMIT 10
+    ");
+    $top_resp_stmt->execute($params);
+    $top_responsaveis_dados = $top_resp_stmt->fetchAll(PDO::FETCH_ASSOC);
+    $top_responsaveis_nomes = array_column($top_responsaveis_dados, 'nome');
+
+    $contagem_por_responsavel = [];
+    
+    if (!empty($top_responsaveis_nomes)) {
+        $in_params = [];
+        $in_names = [];
+        foreach ($top_responsaveis_nomes as $k => $name) {
+            $pname = ":resp_$k";
+            $in_params[$pname] = $name;
+            $in_names[] = $pname;
+        }
+        $placeholders = implode(',', $in_names);
+        
+        $sql_detalhe = "
+            SELECT re.nome as responsavel, m.nome as modalidade, SUM(COALESCE(l.complexidade, 1)) as total_pontos
+            FROM licitacoes l 
+            JOIN responsaveis_elaboracao re ON l.responsavel_elaboracao_id = re.id
+            JOIN modalidades m ON l.modalidade_id = m.id
+            WHERE {$year_filter_sql} 
+            AND re.nome IN ($placeholders)
+            GROUP BY re.nome, m.nome
+        ";
+        
+        $params_detalhe = array_merge($params, $in_params);
+        $stmt_detalhe = $pdo->prepare($sql_detalhe);
+        $stmt_detalhe->execute($params_detalhe);
+        $dados_raw = $stmt_detalhe->fetchAll(PDO::FETCH_ASSOC);
+
+        $modalidades_encontradas = [];
+        $dados_organizados = [];
+
+        foreach ($dados_raw as $row) {
+            $modalidades_encontradas[$row['modalidade']] = true;
+            $dados_organizados[$row['modalidade']][$row['responsavel']] = (int)$row['total_pontos'];
+        }
+
+        $chartColors = ['#7c3aed', '#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#64748b', '#ec4899', '#8b5cf6'];
+        $datasetsResponsaveis = [];
+        $cor_idx = 0;
+
+        foreach (array_keys($modalidades_encontradas) as $mod) {
+            $data_series = [];
+            foreach ($top_responsaveis_nomes as $resp) {
+                $data_series[] = isset($dados_organizados[$mod][$resp]) ? $dados_organizados[$mod][$resp] : 0;
+            }
+
+            $datasetsResponsaveis[] = [
+                'label' => $mod,
+                'data' => $data_series,
+                'backgroundColor' => $chartColors[$cor_idx % count($chartColors)]
+            ];
+            $cor_idx++;
+        }
+
+        $contagem_por_responsavel = [
+            'labels' => $top_responsaveis_nomes,
+            'datasets' => $datasetsResponsaveis
+        ];
+    }
     
     $desempenho_stmt = $pdo->prepare("SELECT o.nome AS orgao, s.nome AS status, COUNT(l.id) AS qtd FROM licitacoes l JOIN orgaos o ON l.orgao_id = o.id JOIN status s ON l.status_id = s.id WHERE {$year_filter_sql} AND (s.nome LIKE 'Homologad%' OR s.nome LIKE 'Fracassad%' OR s.nome LIKE 'Desert%') GROUP BY o.nome, s.nome ORDER BY o.nome, s.nome");
     $desempenho_stmt->execute($params);
@@ -116,8 +246,10 @@ try {
         'status' => ['labels' => array_column($status, 'nome'), 'series' => array_column($status, 'qtd')],
         'contagem_por_modalidade' => ['labels' => array_column($contagem_modalidade, 'nome'), 'series' => array_map('intval', array_column($contagem_modalidade, 'total'))],
         'gasto_por_orgao' => ['labels' => array_column($gasto_por_orgao, 'nome'), 'series' => array_map('floatval', array_column($gasto_por_orgao, 'total'))],
-        'contagem_por_agente' => ['labels' => array_column($contagem_por_agente, 'nome'), 'series' => array_map('intval', array_column($contagem_por_agente, 'total'))],
-        'contagem_por_responsavel' => ['labels' => array_column($contagem_por_responsavel, 'nome'), 'series' => array_map('intval', array_column($contagem_por_responsavel, 'total'))],
+        
+        'contagem_por_agente' => $contagem_por_agente,
+        
+        'contagem_por_responsavel' => $contagem_por_responsavel, 
         'desempenho_por_orgao' => ['labels' => $labelsDesempenho, 'datasets' => array_values($datasetsDesempenho)],
         'tempo_medio_homologacao' => ['labels' => array_column($tempo_medio_homologacao, 'nome'), 'series' => array_map('intval', array_column($tempo_medio_homologacao, 'dias'))],
         'mapa_calor' => ['labels_orgaos' => $labelsHeatmapOrgaos, 'labels_meses' => $labelsHeatmapMeses, 'series' => $seriesHeatmap]

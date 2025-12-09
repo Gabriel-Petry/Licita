@@ -95,10 +95,6 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                                 <textarea rows="4" data-live-target="view-objeto"><?php echo $objeto; ?></textarea>
                             </div>
                             <div class="br-input small mb-2">
-                                <label>Valor (R$):</label>
-                                <input type="text" value="<?php echo $valor_estimado; ?>" data-live-target="view-valor">
-                            </div>
-                            <div class="br-input small mb-2">
                                 <label><?php echo $cargo_responsavel_label; ?>:</label>
                                 <input type="text" value="<?php echo $pregoeiro_nome; ?>" data-live-target="view-pregoeiro">
                             </div>
@@ -250,8 +246,11 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                             </p>
                             
                         <div class="br-input small mb-3">
-                            <label style="font-weight: bold;">Intervalo Mín. entre Lances (R$):</label>
-                            <input type="number" step="0.01" min="0.01" value="0.01" data-live-target="view-intervalo-lances">
+                            <label style="font-weight: bold;" id="label-intervalo-lances">
+                                Intervalo Mín. entre Lances (<?php echo ($cj_val == '0') ? '%' : 'R$'; ?>):
+                            </label>
+
+                            <input type="number" id="intervalo_lances" step="0.01" min="0.01" value="0.01" data-live-target="view-intervalo-lances">
                         </div>
                         <hr style="margin: 10px 0; border-color: #eee;">                            
 
@@ -492,7 +491,7 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
 <div id="edital-credenciamento" class="secao-numerada">
                 <p class="bold" id="participacaocertame"><span class="nr-titulo"></span>. CREDENCIAMENTO E PARTICIPAÇÃO DO CERTAME</p>
                 <p class="subitem">Para participar do certame, o licitante deve providenciar o seu credenciamento, com atribuição de chave e senha, diretamente junto ao provedor do sistema, onde deverá informar-se a respeito do seu funcionamento, regulamento e instruções para a sua correta utilização.</p>
-                <p class="subitem">As instruções para o credenciamento podem ser acessadas no seguinte sítio eletrônico, qualquer dúvida, em relação ao acesso no sistema operacional, poderá ser esclarecida pelo número 3003-5455 (atendimento nacional), junto à Central de Atendimento do Portal de Compras Públicas.</p>
+                <p class="subitem">As instruções para o credenciamento podem ser acessadas no seguinte sítio eletrônico https://www.portaldecompraspublicas.com.br/, qualquer dúvida, em relação ao acesso no sistema operacional, poderá ser esclarecida pelo número 3003-5455 (atendimento nacional), junto à Central de Atendimento do Portal de Compras Públicas.</p>
                 <p class="subitem">É de responsabilidade do licitante, além de credenciar-se previamente no sistema eletrônico utilizado no certame e de cumprir as regras do presente edital:</p>
                 <p class="subitem-3">Responsabilizar-se formalmente pelas transações efetuadas em seu nome, assumir como firmes e verdadeiras suas propostas e seus lances, inclusive os atos praticados diretamente ou por seu representante, excluída a responsabilidade do provedor do sistema ou do órgão ou entidade promotora da licitação por eventuais danos decorrentes de uso indevido da senha, ainda que por terceiros;</p>
                 <p class="subitem-3" id="resplici">Acompanhar as operações no sistema eletrônico durante o processo licitatório e responsabilizar-se pelo ônus decorrente da perda de negócios diante da inobservância de mensagens emitidas pelo sistema ou de sua desconexão;</p>
@@ -620,7 +619,24 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                 <p class="subitem-3">O licitante será imediatamente informado do recebimento do lance e do valor consignado no registro.</p>
                 <p class="subitem-3">O licitante somente poderá oferecer valor inferior ao último lance por ele ofertado e registrado pelo sistema.</p>
                 <p class="subitem-3">Não serão aceitos dois ou mais lances iguais e prevalecerá aquele que for recebido e registrado primeiro.</p>
-				<p class="subitem-3">O intervalo mínimo de diferença de valores entre os lances será de R$<span id="view-intervalo-lances">0.01</span>, que incidirá tanto em relação aos lances intermediários, quanto em relação do lance que cobrir a melhor oferta.</p>
+           	 <?php 
+                    if ($cj_val == '0'): 
+                ?>
+                    <p class="subitem">
+                        O intervalo mínimo de diferença de percentual entre os lances, 
+                        que incidirá tanto em relação aos lances intermediários quanto em 
+                        relação à proposta que cobrir a melhor oferta, será de 
+                        <strong><span id="view-intervalo-lances">0,01</span>% (por cento)</strong>.
+                    </p>
+                <?php else: ?>
+                    <p class="subitem">
+                        O intervalo mínimo de diferença de valores entre os lances, 
+                        que incidirá tanto em relação aos lances intermediários quanto em 
+                        relação à proposta que cobrir a melhor oferta, será de 
+                        <strong>R$ <span id="view-intervalo-lances">0,01</span></strong>.
+                    </p>
+
+                <?php endif; ?>
                 <p class="subitem-3">Serão considerados intermediários os lances iguais ou superiores ao menor já ofertado;</p>
                 <p class="subitem-3">Após a definição da melhor proposta, se a diferença em relação à proposta classificada em segundo lugar for de pelo menos 5% (cinco por cento), a Administração poderá admitir o reinício da disputa aberta, para a definição das demais colocações.</p>
                 <p class="subitem">A Administração poderá realizar diligências para aferir a exequibilidade das propostas ou exigir dos licitantes que ela seja demonstrada.</p>
@@ -659,50 +675,25 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                     <p class="subitem-4">para comprovação da boa situação financeira da empresa, serão apurados índices mínimos aceitáveis, pela aplicação das seguintes formulas:</p>
 
                     <div style="margin-left: 40px; margin-top: 15px; margin-bottom: 15px;">
-                        <table style="border-collapse: collapse;">
-
+						<table style="border-collapse: collapse;">
                             <tr>
                                 <td style="font-weight: bold; padding-right: 10px; white-space: nowrap;">LIQUIDEZ CORRENTE:</td>
-                                <td style="text-align: center; vertical-align: middle;">
-                                    <div style="display: flex; align-items: center; justify-content: center;">
-                                        <div style="display: flex; flex-direction: column; align-items: center;">
-                                            <div style="border-bottom: 1px solid #000; padding: 1px 5px;">AC</div>
-                                            <div style="padding: 1px 5px;">PC</div>
-                                        </div>
-                                        <div style="padding-left: 10px;">
-                                            = índice mínimo: (1)
-                                        </div>
-                                    </div>
+                                <td style="vertical-align: middle;">
+                                    AC / PC = índice mínimo (1)
                                 </td>
                             </tr>
 
                             <tr>
                                 <td style="font-weight: bold; padding-right: 10px; white-space: nowrap;">LIQUIDEZ GERAL:</td>
-                                <td style="text-align: center; vertical-align: middle;">
-                                    <div style="display: flex; align-items: center; justify-content: center;">
-                                        <div style="display: flex; flex-direction: column; align-items: center;">
-                                            <div style="border-bottom: 1px solid #000; padding: 1px 5px;">AC + ARLP</div>
-                                            <div style="padding: 1px 5px;">PC + PELP</div>
-                                        </div>
-                                        <div style="padding-left: 10px;">
-                                            = índice mínimo: (1)
-                                        </div>
-                                    </div>
+                                <td style="vertical-align: middle;">
+                                    (AC + ARLP) / (PC + PELP) = índice mínimo (1)
                                 </td>
                             </tr>
 
                             <tr>
                                 <td style="font-weight: bold; padding-right: 10px; white-space: nowrap;">GRAU DE ENDIVIDAMENTO:</td>
-                                <td style="text-align: center; vertical-align: middle;">
-                                    <div style="display: flex; align-items: center; justify-content: center;">
-                                        <div style="display: flex; flex-direction: column; align-items: center;">
-                                            <div style="border-bottom: 1px solid #000; padding: 1px 5px;">PC + PELP</div>
-                                            <div style="padding: 1px 5px;">AT</div>
-                                        </div>
-                                        <div style="padding-left: 10px;">
-                                            = índice máximo: (1)
-                                        </div>
-                                    </div>
+                                <td style="vertical-align: middle;">
+                                    (PC + PELP) / AT = índice máximo (1)
                                 </td>
                             </tr>
                         </table>
@@ -712,7 +703,6 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
                     <p class="subitem-4">É vedada a substituição do balanço por balancete ou balanço provisório.</p>
                     <p class="subitem-4">Os licitantes que utilizam a escrituração contábil digital - ECD e que aguardam a autenticação do balanço patrimonial pela Junta Comercial poderão apresentar, em substituição ao registro, o protocolo de envio, no Sistema Público de Escrituração Digital - SPED, do balanço à Receita Federal do Brasil.</p>
                     <p class="subitem-4">As empresas criadas no exercício financeiro da licitação deverão atender a todas as exigências da habilitação e ficarão autorizadas a substituir os demonstrativos contábeis pelo balanço de abertura.</p>
-                    <p class="subitem-4"></p>
                 </div>
                 
                 <div id="texto-eco-simples" style="display: none;">
@@ -948,14 +938,32 @@ render_header('Montagem do Edital', ['scripts' => $page_scripts, 'styles' => $pa
             </div>
 
             <br><br>
-            <div id="edital-assinatura">
+			<div id="edital-assinatura">
                 <p class="center">Sapucaia do Sul, <?php echo $data_hoje; ?></p>
-                <br><br>
-                <p class="center">............................................................................</p>
-                <p class="center bold"><?php echo $pregoeiro_nome; ?></p>
-                <p class="center"><?php echo $cargo_responsavel_label; ?></p>
-            </div>
+                <br><br><br><br>
 
+                <div style="margin-bottom: 30px;">
+                    <p class="center">............................................................................</p>
+                    <p class="center bold"><?php echo $user['nome'] ?? $user['usuario'] ?? 'Usuário Responsável'; ?></p>
+                    <p class="center">Responsável pela elaboração do Edital</p>
+                </div>
+
+                <br><br><br><br>
+                
+                <div style="margin-bottom: 30px;">
+                    <p class="center">............................................................................</p>
+                    <p class="center bold">Marindia Carvalho da Silveira</p>
+                    <p class="center">Diretora de Compras</p>
+                </div>
+
+				<br><br><br><br>
+                
+                <div>
+                    <p class="center">............................................................................</p>
+                    <p class="center bold">Volmir Rodrigues</p>
+                    <p class="center">Prefeito Municipal</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

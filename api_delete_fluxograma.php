@@ -6,7 +6,7 @@ require_login();
 header('Content-Type: application/json');
 
 if (!tem_permissao('fluxogramas.excluir')) {
-    http_response_code(403); // Forbidden
+    http_response_code(403);
     echo json_encode(['sucesso' => false, 'mensagem' => 'Você não tem permissão para excluir fluxogramas.']);
     exit;
 }
@@ -28,7 +28,6 @@ if (!$fluxograma_id) {
 
 try {
     $pdo = db();
-    // Query de exclusão agora apaga com base apenas no ID do fluxograma
     $stmt = $pdo->prepare("DELETE FROM fluxogramas WHERE id = :id");
     $stmt->execute([':id' => $fluxograma_id]);
 

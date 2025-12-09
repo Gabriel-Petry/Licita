@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     const applyMask = (input) => {
         let value = input.value.replace(/\D/g, "");
         value = value.replace(/(\d)(\d{2})$/, "$1,$2");
         value = value.replace(/(?=(\d{3})+(\D))\B/g, ".");
         input.value = value;
     };
-
+    
     const addItem = (container, itemIndex) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'demanda-item';

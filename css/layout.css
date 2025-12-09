@@ -1,7 +1,3 @@
-/* ==========================================================================
-   Estrutura do Layout Principal
-   ========================================================================== */
-
 .topbar {
   display: flex;
   align-items: center;
@@ -35,9 +31,6 @@ footer {
   color: var(--cor-texto-secundario);
 }
 
-/* ==========================================================================
-   Navegação
-   ========================================================================== */
 .brand { font-weight: 700; letter-spacing: .5px; font-size: 1.2rem; }
 .nav { display: flex; align-items: center; gap: 1rem; }
 .nav a, .nav .linklike { padding: 6px 10px; border-radius: var(--raio-borda); color: var(--cor-texto-secundario); transition: var(--transicao); text-decoration: none; }

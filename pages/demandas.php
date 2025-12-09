@@ -460,7 +460,8 @@ if ($podeEditar):
                 <h4>Itens da Demanda</h4>
                 
                 <div class="itens-container" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <?php
+                    <?php 
+                    // **** ALTERAÇÃO AQUI: Loop de itens modificado para corresponder à estrutura do JS ****
                     foreach ($itens as $index => $item): 
                     ?>
                     <div class="demanda-item" style="padding: 1rem; border: 1px solid var(--cor-borda); border-radius: var(--raio-borda); margin-bottom: 1rem;">

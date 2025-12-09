@@ -44,52 +44,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    document.querySelectorAll('.btn-desomologar').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const licitacaoId = e.target.dataset.id;
-            const licitacaoProcesso = e.target.dataset.processo;
+    document.addEventListener('click', (e) => {
+        const btnConsultar = e.target.closest('.btn-consultar');
+        if (btnConsultar) {
+            const targetPopupId = btnConsultar.hash ? btnConsultar.hash.substring(1) : null;
+            const popup = targetPopupId ? document.getElementById(targetPopupId) : null;
+            
+            if (popup && btnConsultar.dataset.licitacao) {
+                const consultarContent = popup.querySelector('.consultar-content');
+                const consultarTitle = popup.querySelector('.consultar-title');
+                const data = JSON.parse(btnConsultar.dataset.licitacao);
+                
+                if (consultarTitle) {
+                    consultarTitle.textContent = `Detalhes do Processo ${data.processo || ''}`;
+                }
+                
+                const formatDate = (dateString) => dateString ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(dateString)) : '--';
+                const formatCurrency = (value) => (value !== null && value !== undefined) ? parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ --';
+                
+                if (consultarContent) {
+                    consultarContent.innerHTML = `
+                        <div class="grid grid-3" style="gap: 1.5rem;">
+                            <div><strong>Órgão:</strong><br>${data.orgao || '--'}</div>
+                            <div><strong>Modalidade:</strong><br>${data.modalidade || '--'}</div>
+                            <div><strong>Status:</strong><br><span class="chip">${data.status || '--'}</span></div>
+                            <div><strong>Valor Estimado:</strong><br>${formatCurrency(data.valor_estimado)}</div>
+                            <div><strong>Valor Adjudicado:</strong><br>${formatCurrency(data.valor_adjudicado)}</div>
+                            <div><strong>Economia:</strong><br>${(data.valor_adjudicado) ? formatCurrency(data.valor_estimado - data.valor_adjudicado) : '--'}</div>
+                            <div><strong>Data Licitação:</strong><br>${formatDate(data.data_licitacao)}</div>
+                            <div><strong>Data Conclusão:</strong><br>${formatDate(data.data_homologacao)}</div>
+                            <div><strong>Nº Edital:</strong><br>${data.n_edital || '--'}</div>
+                            <div><strong>Responsável p/ Edital:</strong><br>${data.responsavel_elaboracao || '--'}</div>
+                            <div><strong>Agente de Contratação:</strong><br>${data.agente_contratacao || '--'}</div>
+                        </div>
+                        <hr style="margin: 1.5rem 0; border-color: var(--cor-borda);">
+                        <div><strong>Objeto:</strong><p style="margin-top: 0.5rem;">${data.objeto || '--'}</p></div>
+                        <div><strong>Observação:</strong><p style="margin-top: 0.5rem; white-space: pre-wrap;">${data.observacao || 'Nenhuma.'}</p></div>
+                    `;
+                }
+            }
+        }
+
+        const btnDesomologar = e.target.closest('.btn-desomologar');
+        if (btnDesomologar) {
+            const licitacaoId = btnDesomologar.dataset.id;
+            const licitacaoProcesso = btnDesomologar.dataset.processo;
             const popupTitle = document.getElementById('desomologar-title');
             const popupIdField = document.getElementById('desomologar-licitacao-id');
             
             if (popupTitle) popupTitle.textContent = `Desomologar Proc. ${licitacaoProcesso}`;
             if (popupIdField) popupIdField.value = licitacaoId;
-        });
-    });
-
-    document.querySelectorAll('.btn-consultar').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const targetPopupId = e.currentTarget.hash.substring(1);
-            const popup = document.getElementById(targetPopupId);
-            if (!popup) return;
-
-            const consultarContent = popup.querySelector('.consultar-content');
-            const consultarTitle = popup.querySelector('.consultar-title');
-            const data = JSON.parse(e.currentTarget.dataset.licitacao);
-            
-            consultarTitle.textContent = `Detalhes do Processo ${data.processo || ''}`;
-            
-            const formatDate = (dateString) => dateString ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(dateString)) : '--';
-            const formatCurrency = (value) => (value !== null && value !== undefined) ? parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ --';
-            
-            consultarContent.innerHTML = `
-                <div class="grid grid-3" style="gap: 1.5rem;">
-                    <div><strong>Órgão:</strong><br>${data.orgao || '--'}</div>
-                    <div><strong>Modalidade:</strong><br>${data.modalidade || '--'}</div>
-                    <div><strong>Status:</strong><br><span class="chip">${data.status || '--'}</span></div>
-                    <div><strong>Valor Estimado:</strong><br>${formatCurrency(data.valor_estimado)}</div>
-                    <div><strong>Valor Adjudicado:</strong><br>${formatCurrency(data.valor_adjudicado)}</div>
-                    <div><strong>Economia:</strong><br>${(data.valor_adjudicado) ? formatCurrency(data.valor_estimado - data.valor_adjudicado) : '--'}</div>
-                    <div><strong>Data Licitação:</strong><br>${formatDate(data.data_licitacao)}</div>
-                    <div><strong>Data Conclusão:</strong><br>${formatDate(data.data_homologacao)}</div>
-                    <div><strong>Nº Edital:</strong><br>${data.n_edital || '--'}</div>
-                    <div><strong>Responsável p/ Edital:</strong><br>${data.responsavel_elaboracao || '--'}</div>
-                    <div><strong>Agente de Contratação:</strong><br>${data.agente_contratacao || '--'}</div>
-                </div>
-                <hr style="margin: 1.5rem 0; border-color: var(--cor-borda);">
-                <div><strong>Objeto:</strong><p style="margin-top: 0.5rem;">${data.objeto || '--'}</p></div>
-                <div><strong>Observação:</strong><p style="margin-top: 0.5rem; white-space: pre-wrap;">${data.observacao || 'Nenhuma.'}</p></div>
-            `;
-        });
+        }
     });
 
     document.querySelectorAll('.searchable-select').forEach(select => {
@@ -176,11 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }, delay);
         };
     };
-
-    /**
-     * @param {string} formId - O ID do formulário de filtro.
-     * @param {string} containerId - O ID do container onde o conteúdo da tabela será renderizado.
-     */
 
     const initAutoFiltering = (formId, containerId) => {
         const form = document.getElementById(formId);

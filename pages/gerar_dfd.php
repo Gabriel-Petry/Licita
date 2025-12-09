@@ -1,5 +1,5 @@
 <?php
-    
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -31,19 +31,13 @@ $itens_stmt->execute([$demanda_id]);
 $itens = $itens_stmt->fetchAll();
 
 try {
-    $pathCabecalho = __DIR__ . '/../img/cabecalho.png';
-    $pathRodape = __DIR__ . '/../img/rodape.png';
+    $pathCabecalho = realpath(__DIR__ . '/../img/cabecalho.png');
+    $pathRodape = realpath(__DIR__ . '/../img/rodape.png');
 
-    if (!file_exists($pathCabecalho) || !file_exists($pathRodape)) {
+    if (!$pathCabecalho || !$pathRodape) {
         die('Erro: Não foi possível encontrar os arquivos de imagem do cabeçalho ou rodapé na pasta /img/.');
     }
 
-    $typeCabecalho = pathinfo($pathCabecalho, PATHINFO_EXTENSION);
-    $dataCabecalho = file_get_contents($pathCabecalho);
-    $cabecalhoBase64 = 'data:image/' . $typeCabecalho . ';base64,' . base64_encode($dataCabecalho);
-    $typeRodape = pathinfo($pathRodape, PATHINFO_EXTENSION);
-    $dataRodape = file_get_contents($pathRodape);
-    $rodapeBase64 = 'data:image/' . $typeRodape . ';base64,' . base64_encode($dataRodape);
     $data_prevista = $demanda['data_previsao_licitacao'] ? date('m/Y', strtotime($demanda['data_previsao_licitacao'])) : 'Não definida';
     $objeto_contratacao = htmlspecialchars($demanda['descricao_necessidade']);
     $grau_prioridade = htmlspecialchars($demanda['grau_prioridade']);
@@ -133,10 +127,12 @@ $htmlContent = <<<HTML
 </head>
 <body>
     <div id="header">
-        <img src="{$cabecalhoBase64}"> </div>
+        <img src="{$pathCabecalho}">
+    </div>
 
     <div id="footer">
-        <img src="{$rodapeBase64}"> </div>
+        <img src="{$pathRodape}">
+    </div>
 
     <main>
         <div class="header-title">DOCUMENTO DE FORMALIZAÇÃO DA DEMANDA – DFD {$objeto}</div>

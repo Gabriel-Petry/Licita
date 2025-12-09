@@ -1,7 +1,3 @@
-/* ==========================================================================
-   Componentes Gerais
-   ========================================================================== */
-
 .btn { display: inline-block; padding: 0.625em 1em; border-radius: var(--raio-borda); border: 1px solid var(--cor-borda); background: transparent; color: var(--cor-texto-primario); font-weight: 600; cursor: pointer; text-align: center; transition: var(--transicao); text-decoration: none; white-space: nowrap; }
 .btn.primary { background: var(--cor-destaque); border-color: var(--cor-destaque); color: white; }
 .btn.good { background-color: var(--cor-sucesso); border-color: var(--cor-sucesso); color: white; }
@@ -129,18 +125,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); o
 .grid { display: grid; gap: 1rem; }
 .grid.grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
-
-/* ==========================================================================
-   Estilos de Tabelas
-   ========================================================================== */
 .table-scroll-container { flex-grow: 1; overflow: auto; }
 .table-scroll-container table { width: 100%; border-collapse: collapse; }
 .table-scroll-container th { position: sticky; top: 0; background: var(--cor-painel); z-index: 1; }
 .table-scroll-container th, .table-scroll-container td { padding: 12px 16px; border-bottom: 1px solid var(--cor-borda); text-align: left; vertical-align: middle; }
-
-/* ==========================================================================
-   Pop-ups
-   ========================================================================== */
 .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 100; padding: 1rem; }
 .popup-overlay:target { opacity: 1; visibility: visible; }
 .popup-card { width: 95%; max-width: 1800px; position: relative; transform: scale(0.9); transition: all 0.3s ease; max-height: 120vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -153,9 +141,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); o
 .form-actions { flex-shrink: 0; padding-top: 1rem; border-top: 1px solid var(--cor-borda); display: flex; gap: 1rem; justify-content: flex-end; background: var(--cor-painel); margin: 1rem -24px -24px -24px; padding: 1rem 24px; }
 .form-actions button:first-child { margin-right: auto; }
 
-/* ==========================================================================
-   Componente de Paginação
-   ========================================================================== */
 .pagination {
   display: flex;
   justify-content: center;
@@ -197,10 +182,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-destaque); o
   cursor: not-allowed;
   opacity: 0.5;
 }
-
-/* ==========================================================================
-   Componente Seletor de Tema
-   ========================================================================== */
 
 .themes-container {
     display: flex;
@@ -305,10 +286,6 @@ tr.priority-high {
 .status-vencimento.ok { background-color: var(--cor-sucesso); }
 .status-vencimento.atencao { background-color: var(--cor-aviso); }
 .status-vencimento.expirado { background-color: var(--cor-perigo); }
-
-/* ==========================================================================
-   Estilos Responsivos Gerais (Base e Componentes)
-   ========================================================================== */
 
 @media (max-width: 1200px) {
   main.container {

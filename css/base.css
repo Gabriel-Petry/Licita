@@ -1,6 +1,3 @@
-/* ==========================================================================
-   1. Tema e Variáveis Globais
-   ========================================================================== */
 :root {
   --cor-fundo: #0b1020;
   --cor-painel: #141a2e;
@@ -17,9 +14,6 @@
   --transicao: all 0.2s ease-in-out;
 }
 
-/* ==========================================================================
-   2. Estrutura Principal e Reset
-   ========================================================================== */
 * { box-sizing: border-box; }
 
 html {
@@ -40,12 +34,12 @@ body {
 
 h1,h2,h3 { margin-top: 0; margin-bottom: 1.5rem; font-weight: 600; }
 
-/* ===== RESPONSIVIDADE ===== */
 @media (max-width: 992px) {
   body {
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
+    overflow-x: hidden;
     font-size: 0.95rem;
   }
 }

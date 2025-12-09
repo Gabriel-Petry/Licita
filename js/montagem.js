@@ -648,6 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof initNavAccordion === 'function') initNavAccordion();
     if (typeof initLiveEdit === 'function') initLiveEdit();
     if (typeof initReverseLiveEdit === 'function') initReverseLiveEdit();
+    initDataTargetLinks();
 
     window.atualizarModoDisputa();
     window.atualizarTextoDisputa();
@@ -673,66 +674,92 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    var exportForm = document.getElementById('export-form'); 
-    if(!exportForm) exportForm = document.getElementById('pdf-form');
+	var exportForm = document.getElementById('export-form'); 
+    if(!exportForm) {
+        var btnWord = document.getElementById('btn-gerar-word');
+        if(btnWord && btnWord.form) {
+            exportForm = btnWord.form;
+        }
+    }
 
     if (exportForm) {
         exportForm.addEventListener('submit', function(e) {
             try {
+                console.log("Iniciando exportação...");
+                
                 var contentOriginal = document.querySelector('.document-paper');
                 if (!contentOriginal) {
-                    alert("Erro: Conteúdo não encontrado.");
+                    alert("Erro: Conteúdo do edital não encontrado (.document-paper).");
                     e.preventDefault();
                     return;
                 }
 
                 var clone = contentOriginal.cloneNode(true);
 
-                var lixo = clone.querySelectorAll('img, script, style, .hidden, .no-print, .editor-sidebar, button, input, select, form, label, hr');
+                var lixo = clone.querySelectorAll('img, script, style, .hidden, .no-print, .editor-sidebar, button, input, select, form, label, hr, .xref-error, i.fas');
                 lixo.forEach(function(el) { el.remove(); });
 
-                var textos = clone.querySelectorAll('p, li, span, div, td');
-                textos.forEach(function(el) {
+                var elementsWithData = clone.querySelectorAll('*');
+                elementsWithData.forEach(function(el) {
+                    el.removeAttribute('data-live-target');
+                    el.removeAttribute('data-target');
+                    el.removeAttribute('onclick');
+                    el.removeAttribute('onchange');
+                    el.removeAttribute('id');
+                });
+
+                var paragrafos = clone.querySelectorAll('p, div, li, span, td, th');
+                paragrafos.forEach(function(el) {
                     el.style.fontFamily = 'Arial, sans-serif';
-                    el.style.fontSize = '11pt';
-                    el.style.lineHeight = '1.5';
                     
-                    if (el.classList.contains('center') || el.style.textAlign === 'center') {
-                        el.style.textAlign = 'center';
-                    } else if (!el.style.textAlign) {
-                        el.style.textAlign = 'justify';
+                    if (el.classList.contains('bold') || el.style.fontWeight == 'bold') {
+                        el.style.fontWeight = 'bold';
                     }
-                    
-                    if (el.classList.contains('bold')) el.style.fontWeight = 'bold';
-                    
-                    if (el.classList.contains('subitem-3')) el.style.marginLeft = '20px';
-                    if (el.classList.contains('subitem-4')) el.style.marginLeft = '40px';
-                    if (el.classList.contains('subitem-5')) el.style.marginLeft = '60px';
+                    if (el.classList.contains('center') || el.style.textAlign == 'center') {
+                        el.style.textAlign = 'center';
+                    }
+                    if (el.tagName === 'P') {
+                        el.style.marginTop = '0px'; 
+                        el.style.marginBottom = '10px';
+                    }
                 });
 
                 var tabelas = clone.querySelectorAll('table');
                 tabelas.forEach(function(tb) {
                     tb.setAttribute('border', '1');
+                    tb.setAttribute('cellpadding', '5');
                     tb.style.width = '100%';
                     tb.style.borderCollapse = 'collapse';
-                    tb.style.border = '1px solid #000';
-                    tb.style.marginBottom = '15px';
                     
-                    tb.querySelectorAll('td, th').forEach(function(cell) {
-                        cell.style.border = '1px solid #000';
+                    var celulas = tb.querySelectorAll('td, th');
+                    celulas.forEach(function(cell) {
+                        cell.style.border = '1px solid black';
                         cell.style.padding = '5px';
-                        if (cell.tagName === 'TH') {
-                            cell.style.fontWeight = 'bold';
-                            cell.style.backgroundColor = '#f0f0f0';
-                        }
                     });
                 });
 
-                document.getElementById('hidden_html_content').value = '<body>' + clone.innerHTML + '</body>';
+                var htmlContent = clone.innerHTML;
+                
+                if (!htmlContent || htmlContent.trim().length === 0) {
+                    alert("Erro: O conteúdo HTML gerado está vazio!");
+                    e.preventDefault();
+                    return;
+                }
+
+                var htmlFinal = '<html><body>' + htmlContent + '</body></html>';
+                
+                var inputHidden = document.getElementById('hidden_html_content');
+                if(inputHidden) {
+                    inputHidden.value = htmlFinal;
+                    console.log("Conteúdo definido no input hidden. Tamanho: " + htmlFinal.length);
+                } else {
+                    alert("Erro: Input hidden 'hidden_html_content' não encontrado!");
+                    e.preventDefault();
+                }
 
             } catch (err) {
-                console.error("Erro ao preparar documento: ", err);
-                alert("Erro ao gerar documento. Verifique o console.");
+                console.error("Erro fatal no JS de exportação: ", err);
+                alert("Ocorreu um erro no JavaScript ao preparar o Word:\n" + err.message);
                 e.preventDefault();
             }
         });
@@ -917,3 +944,37 @@ window.formatarMoeda = function(elemento) {
     var event = new Event('input', { bubbles: true });
     elemento.dispatchEvent(event);
 };
+
+function initDataTargetLinks() {
+    var links = document.querySelectorAll('[data-target]');
+    
+    links.forEach(function(el) {
+        el.style.cursor = 'pointer';
+        
+        if (el.classList.contains('titulo-grupo')) {
+            el.title = "Clique para ir até esta seção";
+        }
+        
+        el.addEventListener('click', function(e) {
+            var targetId = this.getAttribute('data-target');
+            var targetEl = document.getElementById(targetId);
+            
+            if (targetEl) {
+                targetEl.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+                
+                var originalBg = targetEl.style.backgroundColor;
+                targetEl.style.transition = "background-color 0.5s ease";
+                targetEl.style.backgroundColor = "#fff3cd";
+                
+                setTimeout(function() {
+                    targetEl.style.backgroundColor = originalBg || "transparent";
+                }, 1500);
+            } else {
+                console.warn("Elemento de destino não encontrado: " + targetId);
+            }
+        });
+    });
+}

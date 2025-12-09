@@ -17,15 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($action === 'create') {
             if (!tem_permissao('licitacoes.criar')) throw new Exception('Acesso negado.');
-            $required_fields = ['processo', 'n_edital', 'valor_estimado', 'orgao_id', 'modalidade_id', 'status_id', 'responsavel_elaboracao_id', 'objeto', 'prioridade'];
+            $required_fields = ['processo', 'n_edital', 'valor_estimado', 'orgao_id', 'modalidade_id', 'status_id', 'responsavel_elaboracao_id', 'objeto', 'prioridade', 'complexidade'];
             foreach ($required_fields as $field) {
                 if (empty($_POST[$field])) {
                     throw new Exception("Erro: O campo '" . ucfirst(str_replace(['_id', '_'], ['', ' '], $field)) . "' é obrigatório.");
                 }
             }
+            
             $stmt = $pdo->prepare(
-                "INSERT INTO licitacoes (processo, objeto, orgao_id, modalidade_id, status_id, valor_estimado, data_licitacao, n_edital, observacao, responsavel_elaboracao_id, agente_contratacao_id, prioridade)
-                 VALUES (:processo, :objeto, :orgao_id, :modalidade_id, :status_id, :valor_estimado, :data_licitacao, :n_edital, :observacao, :responsavel_elaboracao_id, :agente_contratacao_id, :prioridade)"
+                "INSERT INTO licitacoes (processo, objeto, orgao_id, modalidade_id, status_id, valor_estimado, data_licitacao, n_edital, observacao, responsavel_elaboracao_id, agente_contratacao_id, prioridade, complexidade)
+                 VALUES (:processo, :objeto, :orgao_id, :modalidade_id, :status_id, :valor_estimado, :data_licitacao, :n_edital, :observacao, :responsavel_elaboracao_id, :agente_contratacao_id, :prioridade, :complexidade)"
             );
             $stmt->execute([
                 ':processo' => $_POST['processo'], ':objeto' => $_POST['objeto'], ':orgao_id' => $_POST['orgao_id'],
@@ -34,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':n_edital' => $_POST['n_edital'], ':observacao' => $_POST['observacao'] ?? '',
                 ':responsavel_elaboracao_id' => $_POST['responsavel_elaboracao_id'],
                 ':agente_contratacao_id' => empty($_POST['agente_contratacao_id']) ? null : $_POST['agente_contratacao_id'],
-                ':prioridade' => $_POST['prioridade']
+                ':prioridade' => $_POST['prioridade'],
+                ':complexidade' => $_POST['complexidade']
             ]);
             $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Licitação criada com sucesso!'];
 
@@ -43,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_status_homologado_php = (int) $pdo->query("SELECT id FROM status WHERE nome LIKE '%homologad%' LIMIT 1")->fetchColumn();
             
             $stmt = $pdo->prepare(
-                "UPDATE licitacoes SET processo=:processo, objeto=:objeto, orgao_id=:orgao_id, modalidade_id=:modalidade_id, status_id=:status_id, valor_estimado=:valor_estimado, data_licitacao=:data_licitacao, n_edital=:n_edital, observacao=:observacao, responsavel_elaboracao_id=:responsavel_elaboracao_id, agente_contratacao_id=:agente_contratacao_id, prioridade=:prioridade WHERE id=:id"
+                "UPDATE licitacoes SET processo=:processo, objeto=:objeto, orgao_id=:orgao_id, modalidade_id=:modalidade_id, status_id=:status_id, valor_estimado=:valor_estimado, data_licitacao=:data_licitacao, n_edital=:n_edital, observacao=:observacao, responsavel_elaboracao_id=:responsavel_elaboracao_id, agente_contratacao_id=:agente_contratacao_id, prioridade=:prioridade, complexidade=:complexidade WHERE id=:id"
             );
             $stmt->execute([
                 ':id' => $_POST['id'], ':processo' => $_POST['processo'], ':objeto' => $_POST['objeto'], ':orgao_id' => $_POST['orgao_id'],
@@ -52,7 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':n_edital' => $_POST['n_edital'], ':observacao' => $_POST['observacao'] ?? '',
                 ':responsavel_elaboracao_id' => $_POST['responsavel_elaboracao_id'],
                 ':agente_contratacao_id' => empty($_POST['agente_contratacao_id']) ? null : $_POST['agente_contratacao_id'],
-                ':prioridade' => $_POST['prioridade']
+                ':prioridade' => $_POST['prioridade'],
+                ':complexidade' => $_POST['complexidade']
             ]);
             $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Licitação atualizada com sucesso!'];
 
@@ -265,14 +268,36 @@ render_header('Licitações - LicitAções', ['bodyClass' => 'page-licitacoes'])
     <form method="post" class="form-popup">
         <div class="popup-content">
             <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>"><input type="hidden" name="id" value="<?= $r['id'] ?>">
-            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 1rem;">
-                <label style="margin-bottom: 0;">Prioridade:</label>
-                <div class="priority-selector">
-                    <label class="priority-option"><input type="radio" name="prioridade" value="1" <?= ($r['prioridade'] ?? 1) == 1 ? 'checked' : '' ?> required><span class="radio-custom radio-low"></span></label>
-                    <label class="priority-option"><input type="radio" name="prioridade" value="2" <?= ($r['prioridade'] ?? 1) == 2 ? 'checked' : '' ?> required><span class="radio-custom radio-medium"></span></label>
-                    <label class="priority-option"><input type="radio" name="prioridade" value="3" <?= ($r['prioridade'] ?? 1) == 3 ? 'checked' : '' ?> required><span class="radio-custom radio-high"></span></label>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <label style="margin-bottom: 0;">Prioridade:</label>
+                    <div class="priority-selector">
+                        <label class="priority-option"><input type="radio" name="prioridade" value="1" <?= ($r['prioridade'] ?? 1) == 1 ? 'checked' : '' ?> required><span class="radio-custom radio-low"></span></label>
+                        <label class="priority-option"><input type="radio" name="prioridade" value="2" <?= ($r['prioridade'] ?? 1) == 2 ? 'checked' : '' ?> required><span class="radio-custom radio-medium"></span></label>
+                        <label class="priority-option"><input type="radio" name="prioridade" value="3" <?= ($r['prioridade'] ?? 1) == 3 ? 'checked' : '' ?> required><span class="radio-custom radio-high"></span></label>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <label style="margin-bottom: 0;">Nível (Pts):</label>
+                    <div class="priority-selector">
+                        <label class="priority-option" title="Simples (1 pt)">
+                            <input type="radio" name="complexidade" value="1" <?= ($r['complexidade'] ?? 1) == 1 ? 'checked' : '' ?> required>
+                            <span class="radio-custom radio-low"></span>
+                        </label>
+                        <label class="priority-option" title="Médio (2 pts)">
+                            <input type="radio" name="complexidade" value="2" <?= ($r['complexidade'] ?? 1) == 2 ? 'checked' : '' ?> required>
+                            <span class="radio-custom radio-medium"></span>
+                        </label>
+                        <label class="priority-option" title="Complexo (3 pts)">
+                            <input type="radio" name="complexidade" value="3" <?= ($r['complexidade'] ?? 1) == 3 ? 'checked' : '' ?> required>
+                            <span class="radio-custom radio-high"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
+
             <div class="grid grid-3">
                 <div><label>Nº Processo</label><input name="processo" value="<?= htmlspecialchars($r['processo']) ?>" required></div>
                 <div><label>Nº Edital</label><input name="n_edital" value="<?= htmlspecialchars($r['n_edital']) ?>" required></div>
@@ -308,14 +333,39 @@ render_header('Licitações - LicitAções', ['bodyClass' => 'page-licitacoes'])
         <form method="post" class="form-popup">
             <div class="popup-content">
                 <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token()) ?>"><input type="hidden" name="action" value="create">
-                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 1rem;">
-                    <label style="margin-bottom: 0;">Prioridade:</label>
-                    <div class="priority-selector">
-                        <label class="priority-option"><input type="radio" name="prioridade" value="1" checked required><span class="radio-custom radio-low"></span></label>
-                        <label class="priority-option"><input type="radio" name="prioridade" value="2" required><span class="radio-custom radio-medium"></span></label>
-                        <label class="priority-option"><input type="radio" name="prioridade" value="3" required><span class="radio-custom radio-high"></span></label>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label style="margin-bottom: 0;">Prioridade:</label>
+                        <div class="priority-selector">
+                            <label class="priority-option"><input type="radio" name="prioridade" value="1" checked required><span class="radio-custom radio-low"></span></label>
+                            <label class="priority-option"><input type="radio" name="prioridade" value="2" required><span class="radio-custom radio-medium"></span></label>
+                            <label class="priority-option"><input type="radio" name="prioridade" value="3" required><span class="radio-custom radio-high"></span></label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label style="margin-bottom: 0;">Nível (Pts):</label>
+                        <div class="priority-selector">
+                            <label class="priority-option" title="Simples (1 pt)">
+                                <input type="radio" name="complexidade" value="1" checked required>
+                                <span class="radio-custom radio-low"></span>
+                                <span class="muted" style="font-size: 0.8rem; margin-left: 2px;">1</span>
+                            </label>
+                            <label class="priority-option" title="Médio (2 pts)">
+                                <input type="radio" name="complexidade" value="2" required>
+                                <span class="radio-custom radio-medium"></span>
+                                <span class="muted" style="font-size: 0.8rem; margin-left: 2px;">2</span>
+                            </label>
+                            <label class="priority-option" title="Complexo (3 pts)">
+                                <input type="radio" name="complexidade" value="3" required>
+                                <span class="radio-custom radio-high"></span>
+                                <span class="muted" style="font-size: 0.8rem; margin-left: 2px;">3</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
+
                 <div class="grid grid-3">
                     <div><label>Nº Processo</label><input name="processo" required></div>
                     <div><label>Nº Edital</label><input name="n_edital" required></div>

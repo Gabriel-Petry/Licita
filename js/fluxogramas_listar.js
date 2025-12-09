@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }]
     });
 
-
     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     const paper = new joint.dia.Paper({
         el: paperContainer,

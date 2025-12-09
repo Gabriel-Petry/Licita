@@ -33,8 +33,9 @@ $routes = [
     '/salvar-fluxograma' => 'salvar_fluxograma.php',
     '/fluxogramas' => 'fluxogramas_listar.php',
     '/menu' => 'sem_permissao.php',
-    '/gerar_edital' => 'gerar_edital.php',
+    '/edital' => 'gerar_edital.php',
     '/montagem' => 'montagem.php',
+    '/documento' => 'finalizar_word.php'
 ];
 
 if (array_key_exists($route, $routes)) {
